@@ -13,5 +13,3 @@ for a in page.find_all('a'):
     link = a.get('href')
     if link and LINK_REG_EX.match(link):
         print("Link: {}\nTitle: {}\n".format(link, a.text))
-
-
