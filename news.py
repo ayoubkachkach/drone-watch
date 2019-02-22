@@ -1,10 +1,11 @@
 import requests
+import scrapers.crawler
 
 class Content:
     """
     Contains information on news articles.
     """
-    
+
     def __init__(self, url, title, body):
         self.url = url
         self.title = title
@@ -23,7 +24,13 @@ class Website:
     Contains information on website structure.
     """
 
-    def __init__(self, name, url, title_tag, body_tag)
+    def __init__(self, name, url, target_pattern, absolute_url, title_tag, body_tag):
+        self.name = name
+        self.url = url
+        self.target_pattern = target_pattern
+        self.absolute_url = absolute_url
+        self.title_tag = title_tag
+        self.body_tag = body_tag
 
 
 # from bs4 import BeautifulSoup as BSoup
