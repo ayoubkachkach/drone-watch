@@ -14,7 +14,6 @@ BOT_NAME = 'drone_watch'
 SPIDER_MODULES = ['drone_watch.spiders']
 NEWSPIDER_MODULE = 'drone_watch.spiders'
 
-
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'drone_watch (+http://www.yourdomain.com)'
 
