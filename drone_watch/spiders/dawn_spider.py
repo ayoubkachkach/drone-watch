@@ -2,7 +2,12 @@ import scrapy
 from datetime import datetime, timedelta
 import re
 import os
+from ... import Newspaper
 
+next_url = next_date()
+websites = {
+    'dawn':Newspaper('dawn', next(next_url), url_patterns=(re.compile(r'https:\/\/www\.dawn\.com\/news\/[^#]*')), absolute_url = True, title_class = 'story__title', body_class = 'story__content')
+}
 
 def next_date():
     date_format = '%Y-%m-%d'
@@ -19,8 +24,11 @@ class ArticleSpider(scrapy.Spider):
 
     start_urls = [next(next_url)]
 
+    def __init__(self, website_str=''):
+
+
     def parse(self, response):
-        LINK_REGEX = re.compile(r'https:\/\/www\.dawn\.com\/news\/[^#]*')
+        LINK_REGEX = #CHANGE
         for link in response.css('a::attr(href)').re(LINK_REGEX):
             yield response.follow(link, callback=self.parse_article)
 
@@ -28,8 +36,8 @@ class ArticleSpider(scrapy.Spider):
 
     def parse_article(self, response):
 
-        CONTENT_CLASS = 'story__content'
-        TITLE_CLASS = 'story__title'
+        CONTENT_CLASS = #CHANGE
+        TITLE_CLASS = #CHANGE
 
         page = response.url.split("/")[-1]
         filename = '%s.txt' % page
