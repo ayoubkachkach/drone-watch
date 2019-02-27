@@ -1,12 +1,19 @@
 import requests
-import scrapers.crawler
+
+def next_url_dawn():
+    date_format = '%Y-%m-%d'
+    date = datetime.today()
+    while (True):
+        yield 'https://www.dawn.com/archive/%s' % date.strftime(date_format)
+        date = date - timedelta(days=1)
+
+Newspaper('dawn', next(next_url), url_patterns=re.compile(r'https:\/\/www\.dawn\.com\/news\/[^#]*'), absolute_url = True, title_class = 'story__title', body_class = 'story__content', next_url_dawn())
 
 
 class Content:
     """
     Contains information on news articles.
     """
-
     def __init__(self, url, title, body):
         self.url = url
         self.title = title
@@ -26,8 +33,8 @@ class Newspaper:
         Holds information on newspaper's structure for scraping.
     """
 
-    def __init__(self, name, seed_urls, target_patterns, absolute_url, title_class,
-                 body_class):
+    def __init__(self, name, seed_urls, url_patterns, absolute_url, title_class,
+                 body_class, next_url):
         """
         Args:
             name (str) name of the newspaper.
@@ -43,6 +50,7 @@ class Newspaper:
         self.absolute_url = absolute_url
         self.title_class = title_class
         self.body_class = body_class
+        self.next_url = next_url
 
 # from bs4 import BeautifulSoup as BSoup
 # import requests
