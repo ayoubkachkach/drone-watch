@@ -7,7 +7,7 @@ def next_url_dawn():
         yield 'https://www.dawn.com/archive/%s' % date.strftime(date_format)
         date = date - timedelta(days=1)
 
-Newspaper('dawn', next(next_url), url_patterns=re.compile(r'https:\/\/www\.dawn\.com\/news\/[^#]*'), absolute_url = True, title_class = 'story__title', body_class = 'story__content', next_url_dawn())
+
 
 
 class Content:
@@ -34,10 +34,12 @@ class Newspaper:
     """
 
     def __init__(self, name, seed_urls, url_patterns, absolute_url, title_class,
-                 body_class, next_url):
+                 body_class, next_page):
         """
         Args:
             name (str) name of the newspaper.
+            seed_urls (list of str) URLs to start scraping from.
+            next_page (generator of str) returns next page to scrape
             urls (list of str) seed URLs for scraping.
             target_patterns (list of regexp objects) regular expressions of links to follow during scraping.
             absolute_url (bool) True if URLs in website are absolute, False if they are relative.
@@ -45,12 +47,12 @@ class Newspaper:
             body_class (str) CSS class of body
         """
         self.name = name
-        self.seed_urls = seed_urls
         self.url_patterns = url_patterns
         self.absolute_url = absolute_url
         self.title_class = title_class
         self.body_class = body_class
-        self.next_url = next_url
+        self.next_page = next_page
+        self.seed_urls = seed_urls
 
 # from bs4 import BeautifulSoup as BSoup
 # import requests

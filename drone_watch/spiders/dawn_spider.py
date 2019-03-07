@@ -16,33 +16,65 @@ def write_safely(path, filename, content):
     with open(path + filename, 'w') as f:
             f.write(content)
 
-def next_date():
+def next_page_dawn(curr_url):
     date_format = '%Y-%m-%d'
-    date = datetime.today()
-    while (True):
-        yield 'https://www.dawn.com/archive/%s' % date.strftime(date_format)
-        date = date - timedelta(days=1)
+    #if in archive root page (i.e. today's page)
+    if(curr_url == 'https://www.dawn.com/archive/'):
+        prev_day = datetime.today() - timedelta(days = 1)
+        return 'https://www.dawn.com/archive/%s' % prev_day.strftime(date_format)
 
-next_url = next_date()
+    url_format = r'https:\/\/www.dawn.com\/archive\/(\d\d\d\d-\d\d-\d\d)'
+    res = re.search(url_format, curr_url)
+    if(not res):
+        raise ValueError('Given url does not match format', url_format, curr_url)
+
+    #Get match of first parenthesized group in regexp (i.e. date) 
+    curr_date = res.group(1)
+    prev_day = datetime.strptime(curr_date, date_format) - timedelta(days = 1)
+    
+    return 'https://www.dawn.com/archive/%s' % prev_day.strftime(date_format)
+
 websites = {
-    'dawn':
+    'dawn': Newspaper(
+        name='dawn', 
+        seed_urls=['https://www.dawn.com/archive/'], 
+        url_patterns=re.compile(r'https:\/\/www\.dawn\.com\/news\/[^#]*'), 
+        absolute_url = True, 
+        title_class = 'story__title', 
+        body_class = 'story__content', 
+        next_page=next_page_dawn
+    )
 }
 
-class ArticleSpider(Spider):
-    name = 'dawn'
-
-    next_url = next_date()
-
-    start_urls = [next(next_url)]
-
+class ArchiveSpider(Spider):
+    name = 'archive'
+    start_urls = []
+    user_agent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/22.0.1207.1 Safari/537.1"
     def __init__(self, website_str=''):
-        self.website = websites[website_str]
+        self.website = websites.get(website_str, None)
+        self.next_page = self.website.next_page
         self.rules = [Rule(LinkExtractor(allow=self.website.url_patterns), callback=self.parse_article)]
-    
+        self.start_urls = self.website.seed_urls
+
     def parse(self, response):
-        for link in response.css('a::attr(href)').re(self.website.url_patterns):
+        if(not self.website):
+            pass
+
+        # extract all links from current page that respect pattern
+        links = response.css('a::attr(href)').re(self.website.url_patterns)
+        # if no links found, stop crawling
+        if(not links):
+            return
+
+        for link in links:
             yield response.follow(link, callback=self.parse_article)
-        yield response.follow(next(self.next_url), callback=self.parse)
+        
+        next_page = self.next_page(response.url)
+        # if there is no next page
+        if(not next_page):
+            return
+
+        yield response.follow(next_page, callback=self.parse)
 
     def parse_article(self, response):
         title = ''.join(
@@ -50,13 +82,13 @@ class ArticleSpider(Spider):
                 '//*[contains(@class, \'%s\')]/descendant-or-self::*/text()' %
                 self.website.title_class).getall()[0])
 
-        #append text from all children nodes into one
+        # append text from all children nodes into one
         body = ''.join(
             response.xpath(
                 '//div[contains(@class, \'%s\')]/descendant-or-self::*/text()' %
                 self.website.body_class).getall())
 
-        #clean body from javascript escape characters
+        # clean body from javascript escape characters
         body = re.sub(re.compile('\\xad'), '', body)
         body = re.sub(re.compile('\\n'), ' ', body)
         
