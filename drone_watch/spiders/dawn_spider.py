@@ -16,7 +16,8 @@ def write_safely(path, filename, content):
     with open(path + filename, 'w') as f:
             f.write(content)
 
-def next_page_dawn(curr_url):
+def next_page_dawn(response):
+    curr_url = response.url
     date_format = '%Y-%m-%d'
     #if in archive root page (i.e. today's page)
     if(curr_url == 'https://www.dawn.com/archive/'):
@@ -27,13 +28,26 @@ def next_page_dawn(curr_url):
     res = re.search(url_format, curr_url)
     if(not res):
         return None
-        #raise ValueError('Given url does not match format', url_format, curr_url)
 
     #Get match of first parenthesized group in regexp (i.e. date) 
     curr_date = res.group(1)
     prev_day = datetime.strptime(curr_date, date_format) - timedelta(days = 1)
     
     return 'https://www.dawn.com/archive/%s' % prev_day.strftime(date_format)
+
+def next_page_reuters(response):
+    curr_url = response.url
+    url_format = r'https://uk.reuters.com/news/archive/worldnews?view=page&page=(\d)&pageSize=10'
+    res = re.search(url_format, curr_url)
+
+    if(not res):
+        return None
+
+    #Get match of first parenthesized group in regexp (i.e. page) 
+    page = res.group(1)
+    
+    return 'https://uk.reuters.com/news/archive/worldnews?view=page&page={}&pageSize=10'.format(page + 1)
+
 
 websites = {
     'dawn': Newspaper(
@@ -44,7 +58,17 @@ websites = {
         title_class = 'story__title', 
         body_class = 'story__content', 
         next_page=next_page_dawn
+    ),
+    'reuters': Newspaper(
+        name='reuters',
+        seed_urls=['https://uk.reuters.com/news/archive/worldnews?view=page&page=1&pageSize=10'],
+        url_patterns=re.compile(r'https:\/\/uk\.reuters\.com\/article\/.*'),
+        absolute_url = True, 
+        title_class = 'story__title', 
+        body_class = 'ArticleHeader_headline', 
+        next_page=next_page_reuters
     )
+
 }
 
 class ArchiveSpider(Spider):
@@ -69,7 +93,7 @@ class ArchiveSpider(Spider):
         for link in links:
             yield response.follow(link, callback=self.parse_article)
         
-        next_page = self.next_page(response.url)
+        next_page = self.next_page(response)
         # if there is no next page
         if(not next_page):
             return
