@@ -117,3 +117,4 @@ dmypy.json
 
 articles/
 *.pyc
+drone_watch/__pycache__
