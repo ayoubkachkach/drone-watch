@@ -26,7 +26,8 @@ def next_page_dawn(curr_url):
     url_format = r'https:\/\/www.dawn.com\/archive\/(\d\d\d\d-\d\d-\d\d)'
     res = re.search(url_format, curr_url)
     if(not res):
-        raise ValueError('Given url does not match format', url_format, curr_url)
+        return None
+        #raise ValueError('Given url does not match format', url_format, curr_url)
 
     #Get match of first parenthesized group in regexp (i.e. date) 
     curr_date = res.group(1)
@@ -49,7 +50,6 @@ websites = {
 class ArchiveSpider(Spider):
     name = 'archive'
     start_urls = []
-    user_agent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/22.0.1207.1 Safari/537.1"
     def __init__(self, website_str=''):
         self.website = websites.get(website_str, None)
         self.next_page = self.website.next_page

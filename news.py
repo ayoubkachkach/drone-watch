@@ -1,15 +1,5 @@
 import requests
 
-def next_url_dawn():
-    date_format = '%Y-%m-%d'
-    date = datetime.today()
-    while (True):
-        yield 'https://www.dawn.com/archive/%s' % date.strftime(date_format)
-        date = date - timedelta(days=1)
-
-
-
-
 class Content:
     """
     Contains information on news articles.
