@@ -1,9 +1,11 @@
 import requests
 
+
 class Content:
     """
     Contains information on news articles.
     """
+
     def __init__(self, url, title, body):
         self.url = url
         self.title = title
@@ -44,20 +46,3 @@ class Newspaper:
         self.body_class = body_class
         self.next_page = next_page
         self.seed_urls = seed_urls
-
-# from bs4 import BeautifulSoup as BSoup
-# import requests
-# import re
-
-# URL = 'https://www.dawn.com/'
-# LINK_REG_EX = re.compile('https:\/\/www\.dawn\.com\/news\/[^#]*')
-
-# r = requests.get(URL)
-
-# page = BSoup(r.text, features="html.parser")
-
-# for a in page.find_all('a'):
-#     link = a.get('href')
-#     if link and LINK_REG_EX.match(link):
-#         print("Link: {}\nTitle: {}\n".format(link, a.text))
-#
