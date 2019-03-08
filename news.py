@@ -29,12 +29,13 @@ class Newspaper:
         Args:
             name (str) name of the newspaper.
             seed_urls (list of str) URLs to start scraping from.
-            next_page (generator of str) returns next page to scrape
+            base_url (str) base url to use in case of relative urls.
+            next_page (generator of str) returns next page to scrape.
             urls (list of str) seed URLs for scraping.
             target_patterns (list of regexp objects) regular expressions of links to follow during scraping.
             absolute_url (bool) True if URLs in website are absolute, False if they are relative.
-            title_class (str) CSS class of title
-            body_class (str) CSS class of body
+            title_class (str) CSS class of title.
+            body_class (str) CSS class of body.
         """
         self.name = name
         self.url_patterns = url_patterns

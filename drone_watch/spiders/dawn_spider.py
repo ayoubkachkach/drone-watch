@@ -37,14 +37,14 @@ def next_page_dawn(response):
 
 def next_page_reuters(response):
     curr_url = response.url
-    url_format = r'https://uk.reuters.com/news/archive/worldnews?view=page&page=(\d)&pageSize=10'
+    url_format = r'https:\/\/uk\.reuters\.com\/news\/archive\/worldnews\?view=page&page=(\d+)&pageSize.*'
     res = re.search(url_format, curr_url)
 
     if(not res):
         return None
 
     #Get match of first parenthesized group in regexp (i.e. page) 
-    page = res.group(1)
+    page = int(res.group(1))
     
     return 'https://uk.reuters.com/news/archive/worldnews?view=page&page={}&pageSize=10'.format(page + 1)
 
@@ -62,13 +62,12 @@ websites = {
     'reuters': Newspaper(
         name='reuters',
         seed_urls=['https://uk.reuters.com/news/archive/worldnews?view=page&page=1&pageSize=10'],
-        url_patterns=re.compile(r'https:\/\/uk\.reuters\.com\/article\/.*'),
-        absolute_url = True, 
-        title_class = 'story__title', 
-        body_class = 'ArticleHeader_headline', 
+        url_patterns=re.compile(r'(https:\/\/uk\.reuters\.com\/article\/.*)|(\/article\/.*)'),
+        absolute_url = False, 
+        title_class = 'ArticleHeader_headline', 
+        body_class = 'StandardArticleBody_body', 
         next_page=next_page_reuters
     )
-
 }
 
 class ArchiveSpider(Spider):
@@ -81,14 +80,19 @@ class ArchiveSpider(Spider):
         self.start_urls = self.website.seed_urls
 
     def parse(self, response):
-        if(not self.website):
+        website = self.website
+
+        if(not website):
             pass
 
         # extract all links from current page that respect pattern
-        links = response.css('a::attr(href)').re(self.website.url_patterns)
+        links = set(response.css('a::attr(href)').re(website.url_patterns))
         # if no links found, stop crawling
         if(not links):
             return
+
+        if(not website.absolute_url):
+            links = (response.urljoin(link) for link in links if link)
 
         for link in links:
             yield response.follow(link, callback=self.parse_article)
@@ -101,16 +105,18 @@ class ArchiveSpider(Spider):
         yield response.follow(next_page, callback=self.parse)
 
     def parse_article(self, response):
+        website = self.website
+
         title = ''.join(
             response.xpath(
                 '//*[contains(@class, \'%s\')]/descendant-or-self::*/text()' %
-                self.website.title_class).getall()[0])
+                website.title_class).getall()[0])
 
         # append text from all children nodes into one
         body = ''.join(
             response.xpath(
                 '//div[contains(@class, \'%s\')]/descendant-or-self::*/text()' %
-                self.website.body_class).getall())
+                website.body_class).getall())
 
         # clean body from javascript escape characters
         body = re.sub(re.compile('\\xad'), '', body)
@@ -120,7 +126,7 @@ class ArchiveSpider(Spider):
 
         link_title = response.url.split("/")[-1]
         filename = '%s.txt' % link_title
-        path = 'articles/{}/'.format(self.website.name)
+        path = 'articles/{}/'.format(website.name)
 
         write_safely(path, filename, content)
         
