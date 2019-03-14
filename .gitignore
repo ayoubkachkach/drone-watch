@@ -119,3 +119,4 @@ articles/
 *.pyc
 drone_watch/__pycache__/*
 out/*
+articles/*
