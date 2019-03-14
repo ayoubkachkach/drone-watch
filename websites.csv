@@ -1,2 +1,0 @@
-name, url_patterns, absolute_url, title_class, body_class
-dawn, https:\/\/www\.dawn\.com\/news\/[^#]*, True, story__title, story__content
