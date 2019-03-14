@@ -25,7 +25,7 @@ class Newspaper:
         Holds information on newspaper's structure for scraping.
     """
 
-    def __init__(self, name, seed_urls, url_patterns, absolute_url, title_class,
+    def __init__(self, name, seed_urls, url_patterns, relative_url, title_class,
                  body_class, next_page):
         """
         Args:
@@ -35,13 +35,13 @@ class Newspaper:
             next_page (generator of str) returns next page to scrape.
             urls (list of str) seed URLs for scraping.
             target_patterns (list of regexp objects) regular expressions of links to follow during scraping.
-            absolute_url (bool) True if URLs in website are absolute, False if they are relative.
+            relative_url (bool) True if URLs in website are relative, False if they are absolute.
             title_class (str) CSS class of title.
             body_class (str) CSS class of body.
         """
         self.name = name
         self.url_patterns = url_patterns
-        self.absolute_url = absolute_url
+        self.relative_url = relative_url
         self.title_class = title_class
         self.body_class = body_class
         self.next_page = next_page
