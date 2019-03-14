@@ -60,7 +60,7 @@ websites = {
         name='dawn',
         seed_urls=['https://www.dawn.com/archive/'],
         url_patterns=re.compile(r'https:\/\/www\.dawn\.com\/news\/[^#]*'),
-        absolute_url=True,
+        relative_url=False,
         title_class='story__title',
         body_class='story__content',
         next_page=next_page_dawn),
@@ -72,7 +72,7 @@ websites = {
         ],
         url_patterns=re.compile(
             r'(https:\/\/uk\.reuters\.com\/article\/.*)|(\/article\/.*)'),
-        absolute_url=False,
+        relative_url=True,
         title_class='ArticleHeader_headline',
         body_class='StandardArticleBody_body',
         next_page=next_page_reuters)
@@ -101,18 +101,18 @@ class ArchiveSpider(Spider):
 
         # extract all links from current page that respect pattern
         links = set(response.css('a::attr(href)').re(website.url_patterns))
-        # if no links found, stop crawling
         if (not links):
             return
 
-        if (not website.absolute_url):
+        #if website uses relative url
+        if (website.relative_url):
             links = (response.urljoin(link) for link in links if link)
 
         for link in links:
             yield response.follow(link, callback=self.parse_article)
 
         next_page = self.next_page(response)
-        # if there is no next page
+        # if there is no next page, stop
         if (not next_page):
             return
 
