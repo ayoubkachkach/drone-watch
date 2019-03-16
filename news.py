@@ -26,7 +26,7 @@ class Newspaper:
     """
 
     def __init__(self, name, seed_urls, url_patterns, relative_url, title_class,
-                 body_class, time_class, next_page):
+                 date_class, body_class, next_page):
         """
         Args:
             name (str) name of the newspaper.
@@ -44,6 +44,6 @@ class Newspaper:
         self.relative_url = relative_url
         self.title_class = title_class
         self.body_class = body_class
-        self.time_class = time_class
+        self.date_class = date_class
         self.next_page = next_page
         self.seed_urls = seed_urls

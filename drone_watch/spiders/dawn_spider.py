@@ -63,6 +63,7 @@ websites = {
         relative_url=False,
         title_class='story__title',
         body_class='story__content',
+        date_class='story__time',
         next_page=next_page_dawn),
     'reuters':
     Newspaper(
@@ -75,7 +76,8 @@ websites = {
         relative_url=True,
         title_class='ArticleHeader_headline',
         body_class='StandardArticleBody_body',
-        next_page=next_page_reuters)
+        date_class='ArticleHeader_date',
+        next_page=next_page_reuters),
 }
 
 
@@ -121,22 +123,29 @@ class ArchiveSpider(Spider):
     def parse_article(self, response):
         website = self.website
 
-        title = ''.join(
+        title = ' '.join(
             response.xpath(
                 '//*[contains(@class, \'%s\')]/descendant-or-self::*/text()' %
                 website.title_class).getall()[0])
 
         # append text from all children nodes into one
-        body = ''.join(
+        body = ' '.join(
             response.xpath(
                 '//div[contains(@class, \'%s\')]/descendant-or-self::*/text()' %
                 website.body_class).getall())
+
+        date = ''
+        if(website.date_class):
+            # append text from all children nodes into one
+            date = response.xpath(
+                    '//*[contains(@class, \'%s\')]/text()' %
+                    website.date_class).getall()[0]
 
         # clean body from javascript escape characters
         body = re.sub(re.compile('\\xad'), '', body)
         body = re.sub(re.compile('\\n'), ' ', body)
 
-        content = 'Title: {}\nBody:\n{}'.format(title, body)
+        content = 'Title: {}\nDate: {}\nBody:\n{}'.format(title, date, body)
 
         link_title = response.url.split("/")[-1]
         filename = '%s.txt' % link_title
