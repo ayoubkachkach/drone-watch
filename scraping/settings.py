@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-https://doc.scrapy.org/en/latest/topics/settings.html#download-delay
 
-# Scrapy settings for drone_watch project
+# Scrapy settings for scraping project
 #
 # For simplicity, this file contains only settings considered important or
 # commonly used. You can find more settings consulting the documentation:
@@ -9,13 +9,13 @@
 #     https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 
-BOT_NAME = 'drone_watch'
+BOT_NAME = 'scraping'
 
-SPIDER_MODULES = ['drone_watch.spiders']
-NEWSPIDER_MODULE = 'drone_watch.spiders'
+SPIDER_MODULES = ['scraping.spiders']
+NEWSPIDER_MODULE = 'scraping.spiders'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36'
+USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64; rv:48.0) Gecko/20100101 Firefox/48.0'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
@@ -51,13 +51,13 @@ RETRY_HTTP_CODES = [500, 503, 504, 400, 403, 404, 408]
 # Enable or disable spider middlewares
 # See https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 #SPIDER_MIDDLEWARES = {
-#    'drone_watch.middlewares.DroneWatchSpiderMiddleware': 543,
+#    'scraping.middlewares.ScrapingSpiderMiddleware': 543,
 #}
 
 # Enable or disable downloader middlewares
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 #DOWNLOADER_MIDDLEWARES = {
-#    'drone_watch.middlewares.DroneWatchDownloaderMiddleware': 543,
+#    'scraping.middlewares.ScrapingDownloaderMiddleware': 543,
 #}
 
 # Enable or disable extensions
@@ -69,7 +69,7 @@ RETRY_HTTP_CODES = [500, 503, 504, 400, 403, 404, 408]
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 #ITEM_PIPELINES = {
-#    'drone_watch.pipelines.DroneWatchPipeline': 300,
+#    'scraping.pipelines.ScrapingPipeline': 300,
 #}
 
 # Enable and configure the AutoThrottle extension (disabled by default)

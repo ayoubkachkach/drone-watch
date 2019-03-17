@@ -8,7 +8,7 @@
 import scrapy
 
 
-class DroneWatchItem(scrapy.Item):
+class ScrapingItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
     pass
