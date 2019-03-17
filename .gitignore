@@ -120,3 +120,6 @@ articles/
 drone_watch/__pycache__/*
 out/*
 articles/*
+*/*/*/__pycache__
+/*/*/__pycache__/
+*/__pycache__/
