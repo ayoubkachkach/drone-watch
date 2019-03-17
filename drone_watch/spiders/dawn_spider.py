@@ -25,6 +25,7 @@ def next_page_dawn(response):
     #if in archive root page (i.e. today's page)
     if (curr_url == 'https://www.dawn.com/archive/'):
         prev_day = datetime.today() - timedelta(days=1)
+        #return yesterday's archives
         return 'https://www.dawn.com/archive/%s' % prev_day.strftime(
             date_format)
 
@@ -41,7 +42,7 @@ def next_page_dawn(response):
 
 
 def next_page_reuters(response):
-    '''Gives next page given current reuters.com'''
+    '''Gives next page given current response from reuters.com'''
     curr_url = response.url
     url_format = r'https:\/\/uk\.reuters\.com\/news\/archive\/worldnews\?view=page&page=(\d+)&pageSize.*'
     res = re.search(url_format, curr_url)
@@ -51,6 +52,24 @@ def next_page_reuters(response):
     #Get match of first parenthesized group in regexp (i.e. page)
     page = int(res.group(1))
     return 'https://uk.reuters.com/news/archive/worldnews?view=page&page={}&pageSize=10'.format(
+        page + 1)
+
+
+def next_page_pbs(response):
+    '''Gives next page given current response from pbs.org'''
+    curr_url = response.url
+    #if in archive root page (i.e. 1st page)
+    if (curr_url == 'https://www.pbs.org/newshour/world'):
+        return 'https://www.pbs.org/newshour/world/page/2'
+
+    url_format = r'https:\/\/www\.pbs\.org\/newshour\/world\/page\/(\d*)'
+    res = re.search(url_format, curr_url)
+    if (not res):
+        return None
+
+    #Get match of first parenthesized group in regexp (i.e. page number)
+    page = int(res.group(1))
+    return 'https://www.pbs.org/newshour/world/page/{}'.format(
         page + 1)
 
 
@@ -78,6 +97,19 @@ websites = {
         body_class='StandardArticleBody_body',
         date_class='ArticleHeader_date',
         next_page=next_page_reuters),
+    'pbs':
+    Newspaper(
+        name='pbs',
+        seed_urls=[
+            'https://www.pbs.org/newshour/world/page/1'
+        ],
+        url_patterns=re.compile(
+            r'https:\/\/www\.pbs\.org\/newshour\/world\/(?!page).*'),
+        relative_url=True,
+        title_class='post__title',
+        body_class='body-text',
+        date_class='post__date',
+        next_page=next_page_pbs)
 }
 
 
