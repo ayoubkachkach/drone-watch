@@ -1,7 +1,6 @@
 from scrapy.linkextractors import LinkExtractor
-from scrapy.spiders import CrawlSpider, Rule
+from scrapy.spiders import Rule
 from scrapy import Spider
-from datetime import datetime, timedelta
 import re
 import os
 from news import Newspaper
@@ -18,98 +17,6 @@ def write_safely(path, filename, content):
         f.write(content)
 
 
-def next_page_dawn(response):
-    '''Gives next page given current response for dawn.com'''
-    curr_url = response.url
-    date_format = '%Y-%m-%d'
-    #if in archive root page (i.e. today's page)
-    if (curr_url == 'https://www.dawn.com/archive/'):
-        prev_day = datetime.today() - timedelta(days=1)
-        #return yesterday's archives
-        return 'https://www.dawn.com/archive/%s' % prev_day.strftime(
-            date_format)
-
-    url_format = r'https:\/\/www.dawn.com\/archive\/(\d\d\d\d-\d\d-\d\d)'
-    res = re.search(url_format, curr_url)
-    if (not res):
-        return None
-
-    #Get match of first parenthesized group in regexp (i.e. date)
-    curr_date = res.group(1)
-    prev_day = datetime.strptime(curr_date, date_format) - timedelta(days=1)
-
-    return 'https://www.dawn.com/archive/%s' % prev_day.strftime(date_format)
-
-
-def next_page_reuters(response):
-    '''Gives next page given current response from reuters.com'''
-    curr_url = response.url
-    url_format = r'https:\/\/uk\.reuters\.com\/news\/archive\/worldnews\?view=page&page=(\d+)&pageSize.*'
-    res = re.search(url_format, curr_url)
-    if (not res):
-        return None
-
-    #Get match of first parenthesized group in regexp (i.e. page)
-    page = int(res.group(1))
-    return 'https://uk.reuters.com/news/archive/worldnews?view=page&page={}&pageSize=10'.format(
-        page + 1)
-
-
-def next_page_pbs(response):
-    '''Gives next page given current response from pbs.org'''
-    curr_url = response.url
-    #if in archive root page (i.e. 1st page)
-    if (curr_url == 'https://www.pbs.org/newshour/world'):
-        return 'https://www.pbs.org/newshour/world/page/2'
-
-    url_format = r'https:\/\/www\.pbs\.org\/newshour\/world\/page\/(\d*)'
-    res = re.search(url_format, curr_url)
-    if (not res):
-        return None
-
-    #Get match of first parenthesized group in regexp (i.e. page number)
-    page = int(res.group(1))
-    return 'https://www.pbs.org/newshour/world/page/{}'.format(page + 1)
-
-
-websites = {
-    'dawn':
-    Newspaper(
-        name='dawn',
-        seed_urls=['https://www.dawn.com/archive/'],
-        url_patterns=re.compile(r'https:\/\/www\.dawn\.com\/news\/[^#]*'),
-        relative_url=False,
-        title_class='story__title',
-        body_class='story__content',
-        date_class='story__time',
-        next_page=next_page_dawn),
-    'reuters':
-    Newspaper(
-        name='reuters',
-        seed_urls=[
-            'https://uk.reuters.com/news/archive/worldnews?view=page&page=1&pageSize=10'
-        ],
-        url_patterns=re.compile(
-            r'(https:\/\/uk\.reuters\.com\/article\/.*)|(\/article\/.*)'),
-        relative_url=True,
-        title_class='ArticleHeader_headline',
-        body_class='StandardArticleBody_body',
-        date_class='ArticleHeader_date',
-        next_page=next_page_reuters),
-    'pbs':
-    Newspaper(
-        name='pbs',
-        seed_urls=['https://www.pbs.org/newshour/world/page/1'],
-        url_patterns=re.compile(
-            r'https:\/\/www\.pbs\.org\/newshour\/world\/(?!page).*'),
-        relative_url=True,
-        title_class='post__title',
-        body_class='body-text',
-        date_class='postdate',
-        next_page=next_page_pbs)
-}
-
-
 class ArchiveSpider(Spider):
     name = 'archive'
     start_urls = []
@@ -118,7 +25,7 @@ class ArchiveSpider(Spider):
     }
 
     def __init__(self, website_str=''):
-        self.website = websites.get(website_str, None)
+        self.website = Newspaper.get(website_str.upper(), default='None')
         self.next_page = self.website.next_page
         self.rules = [
             Rule(
@@ -139,7 +46,7 @@ class ArchiveSpider(Spider):
             self.logger.info('No link found. Stopping scraper.')
             return
 
-        #if website uses relative url
+        # if website uses relative url, prepend all links with domain name
         if (website.relative_url):
             links = (response.urljoin(link) for link in links if link)
 
