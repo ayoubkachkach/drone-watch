@@ -69,8 +69,7 @@ def next_page_pbs(response):
 
     #Get match of first parenthesized group in regexp (i.e. page number)
     page = int(res.group(1))
-    return 'https://www.pbs.org/newshour/world/page/{}'.format(
-        page + 1)
+    return 'https://www.pbs.org/newshour/world/page/{}'.format(page + 1)
 
 
 websites = {
@@ -100,15 +99,13 @@ websites = {
     'pbs':
     Newspaper(
         name='pbs',
-        seed_urls=[
-            'https://www.pbs.org/newshour/world/page/1'
-        ],
+        seed_urls=['https://www.pbs.org/newshour/world/page/1'],
         url_patterns=re.compile(
             r'https:\/\/www\.pbs\.org\/newshour\/world\/(?!page).*'),
         relative_url=True,
         title_class='post__title',
         body_class='body-text',
-        date_class='post__date',
+        date_class='postdate',
         next_page=next_page_pbs)
 }
 
@@ -116,6 +113,9 @@ websites = {
 class ArchiveSpider(Spider):
     name = 'archive'
     start_urls = []
+    custom_settings = {
+        'LOG_FILE': 'archive.log',
+    }
 
     def __init__(self, website_str=''):
         self.website = websites.get(website_str, None)
@@ -136,6 +136,7 @@ class ArchiveSpider(Spider):
         # extract all links from current page that respect pattern
         links = set(response.css('a::attr(href)').re(website.url_patterns))
         if (not links):
+            self.logger.info('No link found. Stopping scraper.')
             return
 
         #if website uses relative url
@@ -154,24 +155,39 @@ class ArchiveSpider(Spider):
 
     def parse_article(self, response):
         website = self.website
+        title = ''
+        body = ''
+        date = ''
 
-        title = ' '.join(
-            response.xpath(
-                '//*[contains(@class, \'%s\')]/descendant-or-self::*/text()' %
-                website.title_class).getall()[0])
+        titles = response.xpath(
+            '//*[contains(@class, \'%s\')]/descendant-or-self::*/text()' %
+            website.title_class).getall()
+        if (not titles):
+            self.logger.warning('No title found for article in {}'.format(
+                response.url))
+        else:
+            title = titles[0].strip()
 
         # append text from all children nodes into one
-        body = ' '.join(
-            response.xpath(
-                '//div[contains(@class, \'%s\')]/descendant-or-self::*/text()' %
-                website.body_class).getall())
+        bodies = response.xpath(
+            '//div[contains(@class, \'%s\')]/descendant-or-self::*/text()' %
+            website.body_class).getall()
+        if (not bodies):
+            self.logger.warning('No body found for article in {}'.format(
+                response.url))
+        else:
+            bodies = [text.strip() for text in bodies]
+            body = ' '.join(bodies)
 
-        date = ''
-        if(website.date_class):
+        if (website.date_class):
             # append text from all children nodes into one
-            date = response.xpath(
-                    '//*[contains(@class, \'%s\')]/text()' %
-                    website.date_class).getall()[0]
+            dates = response.xpath('//*[contains(@class, \'%s\')]/text()' %
+                                   website.date_class).getall()
+            if (not dates):
+                self.logger.warning('No date found for article in {}'.format(
+                    response.url))
+            else:
+                date = dates[0].strip()
 
         # clean body from javascript escape characters
         body = re.sub(re.compile('\\xad'), '', body)
