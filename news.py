@@ -8,25 +8,6 @@ from requests import Response
 from dataclasses import dataclass
 
 
-class Content:
-    """
-    Contains information on news articles.
-    """
-
-    def __init__(self, url, title, body):
-        self.url = url
-        self.title = title
-        self.body = body
-
-    def print(self):
-        """
-        Pretty printer for Content objects
-        """
-        print("URL: {}".format(self.url))
-        print("TITLE: {}".format(self.title))
-        print("BODY:\n {}".format(self.body))
-
-
 @dataclass
 class Website():
     """
