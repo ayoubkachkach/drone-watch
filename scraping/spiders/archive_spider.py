@@ -108,15 +108,3 @@ class ArchiveSpider(Spider):
         path = 'articles/{}/'.format(website.name)
 
         write_safely(path, filename, content)
-
-
-# start_urls = [
-#     'https://www.dawn.com/newspaper/front-page/',
-#     'https://www.dawn.com/newspaper/back-page/',
-#     'https://www.dawn.com/newspaper/national/',
-#     'https://www.dawn.com/newspaper/international/',
-#     'https://www.dawn.com/newspaper/lahore/',
-#     'https://www.dawn.com/newspaper/islamabad/',
-#     'https://www.dawn.com/newspaper/peshawar/',
-#     'https://www.dawn.com/newspaper/karachi'
-# ]
