@@ -3,7 +3,7 @@ from scrapy.spiders import Rule
 from scrapy import Spider
 import re
 import os
-from news import Newspaper
+from news import websites
 
 
 def write_safely(path, filename, content):
@@ -25,7 +25,12 @@ class ArchiveSpider(Spider):
     }
 
     def __init__(self, website_str=''):
-        self.website = Newspaper.get(website_str.upper(), default='None')
+        self.website = websites.get(website_str.upper(), None)
+        if (self.website is None):
+            raise ValueError(
+                'No website {} available. Enter one of the following websites: {}'
+                .format(website_str, list(websites.keys())))
+
         self.next_page = self.website.next_page
         self.rules = [
             Rule(
@@ -36,10 +41,6 @@ class ArchiveSpider(Spider):
 
     def parse(self, response):
         website = self.website
-
-        if (not website):
-            pass
-
         # extract all links from current page that respect pattern
         links = set(response.css('a::attr(href)').re(website.url_patterns))
         if (not links):
