@@ -1,12 +1,12 @@
 from django.db import models
 
 
-
 class EntityType(Enum):
     DATE = "DATE"
     LOCATION = "LOCATION"
     KILLED = "KILLED"
     INJURED = "INJURED"
+
 
 class Source(models.Model):
     '''Model holding info on sources'''
@@ -17,6 +17,7 @@ class Source(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class Article(models.Model):
     ''' Class representing model of a scraper article. '''
@@ -32,20 +33,50 @@ class Article(models.Model):
         return '{} ({})'.format(self.title, self.source_name)
 
 
-class ArticleLabelling(models.Model):
-    seed = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='seed')
+class ArticleLabel(models.Model):  #StrikeParameters
+    seed = models.ForeignKey(
+        Article, on_delete=models.CASCADE, related_name='seed')
     # Likelihood that article is reporting on a drone airstrike
     classification_score = models.FloatField(null=True)
-    # Entities extracted from article
-    entities = models.ManyToManyField(Entity, null=True)
+    #True if article has been labelled manually, False otherwise
     is_ground_truth = models.BooleanField(default=False)
+    # Entities extracted from article
+    date_entities = models.ManyToManyField(DateEntity, null=True)
+    location_entities = models.ManyToManyField(LocationEntity, null=True)
+    killed_entities = models.ManyToManyField(KilledEntity, null=True)
+    injured_entities = models.ManyToManyField(InjuredEntity, null=True)
+    
 
 
-class Entity(models.Model):
-    seed = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='seed')
-    type = models.CharField(
-      choices=[(entity, entity.value) for entity in EntityType]
-    )
-    start_index = models.IntegerField() 
+class DateEntity(models.Model):
+    seed = models.ForeignKey(
+        Article, on_delete=models.CASCADE, related_name='seed')
+    start_index = models.IntegerField()
     end_index = models.IntegerField()
+    date = models.DateTimeField()
 
+
+class LocationEntity(models.Model):
+    seed = models.ForeignKey(
+        Article, on_delete=models.CASCADE, related_name='seed')
+    start_index = models.IntegerField()
+    end_index = models.IntegerField()
+    location = models.CharField(max_length=200)
+    #TODO: come up with fields to better describe location (e.g. latitude, longitude ..)
+
+
+class KilledEntity(models.Model):
+    seed = models.ForeignKey(
+        Article, on_delete=models.CASCADE, related_name='seed')
+    start_index = models.IntegerField()
+    end_index = models.IntegerField()
+    num_killed = models.IntegerField()
+    #TODO: come up with fields to better describe location (e.g. latitude, longitude ..)
+
+
+class InjuredEntity(models.Model):
+    seed = models.ForeignKey(
+        Article, on_delete=models.CASCADE, related_name='seed')
+    start_index = models.IntegerField()
+    end_index = models.IntegerField()
+    num_injured = models.IntegerField()
