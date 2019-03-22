@@ -63,7 +63,7 @@ REUTERS = Website(
     next_page=pagination.next_page_reuters),
 PBS = Website(
     name='pbs',
-    homepage='https://www.pbs.org/'
+    homepage='https://www.pbs.org/',
     seed_urls=['https://www.pbs.org/newshour/world/page/1'],
     url_patterns=re.compile(
         r'https:\/\/www\.pbs\.org\/newshour\/world\/(?!page).*'),
