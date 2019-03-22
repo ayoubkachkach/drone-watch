@@ -6,7 +6,9 @@
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
 
-class ScrapingPipeline(object):
+class ArticlePipeline(object):
 
     def process_item(self, item, spider):
+        item['date_scraped'] = timezone.now()
+        item.save()
         return item
