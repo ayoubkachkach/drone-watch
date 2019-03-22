@@ -11,7 +11,7 @@ class EntityType(Enum):
 class Source(models.Model):
     '''Model holding info on sources'''
 
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     homepage = models.URLField(max_length=200, unique=True)
     favicon = models.URLField(max_length=200, unique=True)
 
@@ -45,7 +45,6 @@ class ArticleLabel(models.Model):  #StrikeParameters
     location_entities = models.ManyToManyField(LocationEntity, null=True)
     killed_entities = models.ManyToManyField(KilledEntity, null=True)
     injured_entities = models.ManyToManyField(InjuredEntity, null=True)
-    
 
 
 class DateEntity(models.Model):
