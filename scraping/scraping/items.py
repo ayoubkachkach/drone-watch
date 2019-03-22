@@ -6,9 +6,11 @@
 # https://doc.scrapy.org/en/latest/topics/items.html
 
 import scrapy
+
 from scrapy_djangoitem import DjangoItem
 
-from api.models import Author, Article, Category, Source
+from web.models import Article
+from web.models import Source
 
 
 class ArticleItem(DjangoItem):

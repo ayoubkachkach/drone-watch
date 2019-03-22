@@ -1,13 +1,7 @@
-# -*- coding: utf-8 -*-https://doc.scrapy.org/en/latest/topics/settings.html#download-delay
-
-# Scrapy settings for scraping project
-#
-# For simplicity, this file contains only settings considered important or
-# commonly used. You can find more settings consulting the documentation:
-#
-#     https://doc.scrapy.org/en/latest/topics/settings.html
-#     https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
-#     https://doc.scrapy.org/en/latest/topics/spider-middleware.html
+# -*- coding: utf-8 -*-
+import os
+import sys
+import django
 
 BOT_NAME = 'scraping'
 
@@ -32,9 +26,14 @@ DOWNLOAD_DELAY = 4
 #CONCURRENT_REQUESTS_PER_IP = 16
 
 # Retry many times since proxies often fail
-RETRY_TIMES = 5
+RETRY_TIMES = 3
 # Retry on most error codes since proxies fail for different reasons
 RETRY_HTTP_CODES = [500, 503, 504, 400, 403, 404, 408]
+
+# Django configuration
+sys.path.insert(0, os.path.abspath('../web'))
+os.environ['DJANGO_SETTINGS_MODULE'] = 'web.settings'
+django.setup()
 
 # Disable cookies (enabled by default)
 #COOKIES_ENABLED = False
@@ -68,9 +67,9 @@ RETRY_HTTP_CODES = [500, 503, 504, 400, 403, 404, 408]
 
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    'scraping.pipelines.ScrapingPipeline': 300,
-#}
+ITEM_PIPELINES = {
+    'scraping.pipelines.ArticlePipeline': 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/autothrottle.html
