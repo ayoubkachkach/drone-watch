@@ -3,7 +3,7 @@ from collections import namedtuple
 from enum import Enum
 import re
 import pagination
-from typing import Match, List
+from typing import Match, List, Callable
 from requests import Response
 from dataclasses import dataclass
 
@@ -31,7 +31,7 @@ class Website():
     title_class: str
     body_class: str
     date_class: str
-    next_page: Response
+    next_page: Callable[[Response], str]
 
 
 DAWN = Website(

@@ -3,7 +3,7 @@ from scrapy.spiders import Rule
 from scrapy import Spider
 import re
 import os
-from news import websites
+from website import websites
 
 
 def write_safely(path, filename, content):
