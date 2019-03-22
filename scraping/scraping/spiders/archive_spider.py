@@ -1,20 +1,15 @@
+import dateparser
+import os
+import re
+
+from ..items import ArticleItem
+from django.apps import apps
+from scrapy import Spider
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import Rule
-from scrapy import Spider
-import re
-import os
+from web.models import Article
+from web.models import Source
 from website import websites
-
-
-def write_safely(path, filename, content):
-    if not os.path.exists(path):
-        try:
-            os.makedirs(path)
-        except FileExistsError:
-            pass
-
-    with open(path + filename, 'w') as f:
-        f.write(content)
 
 
 class ArchiveSpider(Spider):
@@ -38,6 +33,10 @@ class ArchiveSpider(Spider):
                 callback=self.parse_article)
         ]
         self.start_urls = self.website.seed_urls
+        self.source = Source.objects.get_or_create(
+            name=self.website.name,
+            homepage=self.website.homepage,
+            favicon=self.website.favicon)[0]
 
     def parse(self, response):
         website = self.website
@@ -65,7 +64,7 @@ class ArchiveSpider(Spider):
         website = self.website
         title = ''
         body = ''
-        date = ''
+        date = None
 
         titles = response.xpath(
             '//*[contains(@class, \'%s\')]/descendant-or-self::*/text()' %
@@ -77,34 +76,34 @@ class ArchiveSpider(Spider):
             title = titles[0].strip()
 
         # append text from all children nodes into one
-        bodies = response.xpath(
+        paragraphs = response.xpath(
             '//div[contains(@class, \'%s\')]/descendant-or-self::*/text()' %
             website.body_class).getall()
-        if (not bodies):
+        if (paragraphs):
+            body = '\n'.join(p.strip() for p in paragraphs)
+        else:
             self.logger.warning('No body found for article in {}'.format(
                 response.url))
-        else:
-            bodies = [text.strip() for text in bodies]
-            body = ' '.join(bodies)
 
-        if (website.date_class):
-            # append text from all children nodes into one
-            dates = response.xpath('//*[contains(@class, \'%s\')]/text()' %
-                                   website.date_class).getall()
-            if (not dates):
-                self.logger.warning('No date found for article in {}'.format(
-                    response.url))
-            else:
-                date = dates[0].strip()
+        # append text from all children nodes into one
+        dates = response.xpath('//*[contains(@class, \'%s\')]/text()' %
+                               website.date_class).getall()
+        if (dates):
+            date_str = dates[0].strip()
+            date = dateparser.parse(date_str)
+        else:
+            self.logger.warning('No date found for article in {}'.format(
+                response.url))
 
         # clean body from javascript escape characters
         body = re.sub(re.compile('\\xad'), '', body)
         body = re.sub(re.compile('\\n'), ' ', body)
 
-        content = 'Title: {}\nDate: {}\nBody:\n{}'.format(title, date, body)
+        article_item = ArticleItem(
+            title=title,
+            body=body,
+            date_published=date,
+            url=response.url,
+            source=self.source)
 
-        link_title = response.url.split("/")[-1]
-        filename = '%s.txt' % link_title
-        path = 'articles/{}/'.format(website.name)
-
-        write_safely(path, filename, content)
+        yield article_item

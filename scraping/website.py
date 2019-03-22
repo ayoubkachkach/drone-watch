@@ -1,11 +1,14 @@
-import requests
-from collections import namedtuple
-from enum import Enum
-import re
 import pagination
-from typing import Match, List, Callable
-from requests import Response
+import re
+import requests
+
+from collections import namedtuple
 from dataclasses import dataclass
+from enum import Enum
+from requests import Response
+from typing import Callable
+from typing import List
+from typing import Match
 
 
 @dataclass
