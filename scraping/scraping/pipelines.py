@@ -6,6 +6,7 @@
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 from django.utils import timezone
 
+
 class ArticlePipeline(object):
 
     def process_item(self, item, spider):

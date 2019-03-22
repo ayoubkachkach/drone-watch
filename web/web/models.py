@@ -54,6 +54,7 @@ class LocationEntity(models.Model):
     start_index = models.IntegerField()
     end_index = models.IntegerField()
     location = models.CharField(max_length=200)
+
     #TODO: come up with fields to better describe location (e.g. latitude, longitude ..)
 
     class Meta:
