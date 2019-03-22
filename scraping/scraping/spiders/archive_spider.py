@@ -89,7 +89,7 @@ class ArchiveSpider(Spider):
         dates = response.xpath('//*[contains(@class, \'%s\')]/text()' %
                                website.date_class).getall()
         if (dates):
-            date_str = dates[0].strip()
+            date_str = dates[0].split('/')[0].strip()
             date = dateparser.parse(date_str)
         else:
             self.logger.warning('No date found for article in {}'.format(
