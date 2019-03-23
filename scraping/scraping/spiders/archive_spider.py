@@ -50,6 +50,9 @@ class ArchiveSpider(Spider):
         if (website.relative_url):
             links = (response.urljoin(link) for link in links if link)
 
+        # only keep unvisited links
+        links = (link for link in links if not Article.objects.filter(url=link))
+
         for link in links:
             yield response.follow(link, callback=self.parse_article)
 
