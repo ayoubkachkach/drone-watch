@@ -57,7 +57,7 @@ coverage.xml
 # Django stuff:
 *.log
 local_settings.py
-db.sqlite3
+#db.sqlite3
 
 # Flask stuff:
 instance/
@@ -124,3 +124,4 @@ articles/*
 /*/*/__pycache__/
 */__pycache__/
 scraping/scraping/spiders/geckodriver-v0.24.0-linux64.tar.gz
+scraping/state/
