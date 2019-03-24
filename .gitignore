@@ -123,3 +123,4 @@ articles/*
 */*/*/__pycache__
 /*/*/__pycache__/
 */__pycache__/
+scraping/scraping/spiders/geckodriver-v0.24.0-linux64.tar.gz

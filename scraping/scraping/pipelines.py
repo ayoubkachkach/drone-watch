@@ -10,6 +10,9 @@ from django.utils import timezone
 class ArticlePipeline(object):
 
     def process_item(self, item, spider):
+        if(not item):
+            return
+        
         item['date_scraped'] = timezone.now()
         item.save()
         return item

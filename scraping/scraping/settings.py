@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
+import django
 import os
 import sys
-import django
 
 BOT_NAME = 'scraping'
 

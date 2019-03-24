@@ -5,7 +5,8 @@ import requests
 from collections import namedtuple
 from dataclasses import dataclass
 from enum import Enum
-from requests import Response
+from scrapy.http.response.html import HtmlResponse
+from scrapy import Request
 from typing import Callable
 from typing import List
 from typing import Match
@@ -36,7 +37,8 @@ class Website():
     body_class: str
     date_class: str
     favicon: str
-    next_page: Callable[[Response], str]
+    next_button_id: str
+    next_request: Callable[[HtmlResponse], Request]
 
 
 DAWN = Website(
@@ -49,7 +51,8 @@ DAWN = Website(
     body_class='story__content',
     date_class='story__time',
     favicon='https://www.dawn.com/favicon.ico',
-    next_page=pagination.next_page_dawn)
+    next_button_id=None,
+    next_request=pagination.next_request_dawn)
 REUTERS = Website(
     name='reuters',
     homepage='https://www.reuters.com/',
@@ -63,18 +66,32 @@ REUTERS = Website(
     body_class='StandardArticleBody_body',
     date_class='ArticleHeader_date',
     favicon='https://www.reuters.com/resources/images/favicon.ico',
-    next_page=pagination.next_page_reuters)
+    next_button_id=None,
+    next_request=pagination.next_request_reuters)
 PBS = Website(
     name='pbs',
     homepage='https://www.pbs.org/',
     seed_urls=['https://www.pbs.org/newshour/world/page/1'],
     url_patterns=re.compile(
         r'https:\/\/www\.pbs\.org\/newshour\/world\/(?!page).*'),
-    relative_url=True,
+    relative_url=False,
     title_class='post__title',
     body_class='body-text',
     date_class='post__date',
     favicon='https://www.pbs.org/favicon.ico',
-    next_page=pagination.next_page_pbs)
+    next_button_id=None,
+    next_request=pagination.next_request_pbs)
+KHAAMA = Website(
+    name='khaama',
+    homepage='https://www.khaama.com/',
+    seed_urls=['https://www.khaama.com/category/afghanistan/'],
+    url_patterns=re.compile(r'https:\/\/www\.khaama\.com\/[^\/]*-[^\/]*-[^\/]*\/'),
+    relative_url=False,
+    title_class='single-title',
+    body_class='post-content',
+    date_class='single-meta',
+    favicon='https://www.khaama.com/favicon.ico',
+    next_button_id='load-more',
+    next_request=None)
 
-websites = {'DAWN': DAWN, 'REUTERS': REUTERS, 'PBS': PBS}
+websites = {'DAWN': DAWN, 'KHAAMA':KHAAMA, 'REUTERS': REUTERS, 'PBS': PBS}
