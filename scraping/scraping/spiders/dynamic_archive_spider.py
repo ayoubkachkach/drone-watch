@@ -40,7 +40,7 @@ class DynamicArchiveSpider(Spider):
     #     'LOG_FILE': 'archive.log',
     # }
 
-    def __init__(self, website_str=''):
+    def __init__(self, website_str='', start_url=''):
         self.website = websites.get(website_str.upper(), None)
         self.page_number = 1
         if self.website is None:
@@ -58,6 +58,8 @@ class DynamicArchiveSpider(Spider):
                 callback=parse_article)
         ]
         self.start_urls = self.website.seed_urls
+        if(start_url):
+            self.start_urls = [start_url]
         self.source = Source.objects.get_or_create(
             name=self.website.name,
             homepage=self.website.homepage,
@@ -67,7 +69,7 @@ class DynamicArchiveSpider(Spider):
         self.driver.get(response.url)
         website = self.website
         while True:
-            if self.page_number > 20:
+            if self.page_number > 10000:
                 break
             try:
                 prefix_size = 0
@@ -93,9 +95,10 @@ class DynamicArchiveSpider(Spider):
                 links = (link for link in links if not Article.objects.filter(url=link))
 
                 for link in links:
-                    yield response.follow(link, callback=parse_article, meta={'spider': self, 'website': website})
+                    yield response.follow(link, callback=parse_article, meta={'spider': self, 'website': website}, priority=1)
             except Exception as e:
                 break
+        driver.close()
         driver.quit()
 
 
