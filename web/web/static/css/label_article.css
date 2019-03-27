@@ -1,0 +1,25 @@
+.header {
+    padding: 10px 16px;
+    background: #555;
+    color: #f1f1f1;
+}
+
+.navbar-fixed-top {
+    position: fixed;
+    right: 0;
+    left: 0;
+    z-index: 999;
+}
+
+.content-div {
+    margin-top: 200px;
+    position:absolute;
+}
+
+.title {
+    text-align: center;
+}
+p {
+    margin-left: 100px;
+    margin-right: 100px;
+}

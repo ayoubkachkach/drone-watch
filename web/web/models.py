@@ -1,5 +1,12 @@
 from django.db import models
 
+class LabelPost(models.Model):
+
+    urls = models.TextField()
+    date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'labelpost'
 
 class Source(models.Model):
     '''Model holding info on sources'''
