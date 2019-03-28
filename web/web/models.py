@@ -46,22 +46,23 @@ class Article(models.Model):
 
 class DateEntity(models.Model):
     seed = models.ForeignKey(
-        Article, on_delete=models.CASCADE, related_name='date_entities')
+        Article, on_delete=models.CASCADE, related_name='date_entity')
     start_index = models.IntegerField()
     end_index = models.IntegerField()
-    date = models.DateTimeField()
+    date_str = models.CharField(max_length=50)
+    date = models.DateTimeField(null=True)
 
     class Meta:
         db_table = 'date_entity'
 
 
 class LocationEntity(models.Model):
-    seed = models.ForeignKey(
-        Article, on_delete=models.CASCADE, related_name='location_entities')
+    seed = models.OneToOneField(
+        Article, on_delete=models.CASCADE, related_name='location_entity')
     start_index = models.IntegerField()
     end_index = models.IntegerField()
     location = models.CharField(max_length=200)
-
+    
     #TODO: come up with fields to better describe location (e.g. latitude, longitude ..)
 
     class Meta:
@@ -69,8 +70,8 @@ class LocationEntity(models.Model):
 
 
 class KilledEntity(models.Model):
-    seed = models.ForeignKey(
-        Article, on_delete=models.CASCADE, related_name='killed_entities')
+    seed = models.OneToOneField(
+        Article, on_delete=models.CASCADE, related_name='killed_entity')
     start_index = models.IntegerField()
     end_index = models.IntegerField()
     num_killed = models.IntegerField()
@@ -80,8 +81,8 @@ class KilledEntity(models.Model):
 
 
 class InjuredEntity(models.Model):
-    seed = models.ForeignKey(
-        Article, on_delete=models.CASCADE, related_name='injured_entities')
+    seed = models.OneToOneField(
+        Article, on_delete=models.CASCADE, related_name='injured_entity')
     start_index = models.IntegerField()
     end_index = models.IntegerField()
     num_injured = models.IntegerField()
@@ -91,8 +92,8 @@ class InjuredEntity(models.Model):
 
 
 class PerpetratorEntity(models.Model):
-    seed = models.ForeignKey(
-        Article, on_delete=models.CASCADE, related_name='perpetrator_entities')
+    seed = models.OneToOneField(
+        Article, on_delete=models.CASCADE, related_name='perpetrator_entity')
     start_index = models.IntegerField()
     end_index = models.IntegerField()
     perpetrator = models.CharField(max_length=100)

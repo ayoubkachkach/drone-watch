@@ -32,7 +32,8 @@
   </div>
   <script>
     window.page_data = {
-      url: '{% url 'label_article' idx %}'
+      url: '{% url 'label_article' idx %}',
+      article_url: '{{ article_url }}'
     };
   </script>
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>

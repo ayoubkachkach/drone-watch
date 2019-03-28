@@ -31,22 +31,22 @@
 // ];
 
 const COLORS = [
-    '#FF00FF', //fuschia
-    '#A9A9A9', //grey
-    '#ffb732', //orange
+    '#10ff00', //green
     '#0080ff', //blue
     '#ff0000', //red
+    '#ffb732', //orange
     '#f8ff00', //yellow
-    '#a41a1a', //brown
-    '#10ff00', //green
-    '#00ffd9'  //light green/blue
+    '#00ffd9',  //light green/blue
+    '#FF00FF', //fuschia
+    '#A9A9A9', //grey    
+    '#a41a1a', //brown    
 ];
 
-const LABELS = ["DATE", "LOCATION", "CASUALTY"];
+const LABELS = ["date", "location", "killed", "injured", "perpetrator"];
 const MAX_LABELS = COLORS.length;
 const LABEL_ATTRIBUTE = 'label';
 const CONTENT_ID = 'content';
-var results = {};
+var results = {'article_url': window.page_data.article_url};
 
 function getSelectedString() {
     windowSelection = window.getSelection();
@@ -91,7 +91,7 @@ function highlightSelection(event) {
     if(style !== null){
         $(style).replaceWith(function() { return this.innerHTML; });
     }
-    
+
     highlight.setAttribute(
         "style",
         `background-color: ${color}; display: inline;`
@@ -134,9 +134,9 @@ function labelSelection(event) {
     }
 
     var tagInfo = {
-        'CONTENT':selectedString,
-        'START_INDEX':startIndex, 
-        'END_INDEX':endIndex
+        'content':selectedString,
+        'start_index':startIndex, 
+        'end_index':endIndex
     };
 
     results[label] = tagInfo;
