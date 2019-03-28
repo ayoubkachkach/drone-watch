@@ -86,7 +86,12 @@ function highlightSelection(event) {
     var range = window.getSelection().getRangeAt(0);
     var highlight = document.createElement("span");
     var color = labelToColor[label];
-    document.getElementById(label);
+
+    style = document.getElementById(label);
+    if(style !== null){
+        $(style).replaceWith(function() { return this.innerHTML; });
+    }
+    
     highlight.setAttribute(
         "style",
         `background-color: ${color}; display: inline;`
