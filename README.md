@@ -1,1 +1,1 @@
-Web app that scrapes online articles to gather data about US drone airstrikes
+Web app that scrapes online articles to gather data about drone airstrikes
