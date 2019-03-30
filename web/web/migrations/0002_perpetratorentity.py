@@ -14,11 +14,20 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='PerpetratorEntity',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id',
+                 models.AutoField(
+                     auto_created=True,
+                     primary_key=True,
+                     serialize=False,
+                     verbose_name='ID')),
                 ('start_index', models.IntegerField()),
                 ('end_index', models.IntegerField()),
                 ('perpetrator', models.CharField(max_length=100)),
-                ('seed', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='perpetrator_entity', to='web.Article')),
+                ('seed',
+                 models.OneToOneField(
+                     on_delete=django.db.models.deletion.CASCADE,
+                     related_name='perpetrator_entity',
+                     to='web.Article')),
             ],
             options={
                 'db_table': 'perpetrator_entity',

@@ -14,12 +14,21 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='DateEntity',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id',
+                 models.AutoField(
+                     auto_created=True,
+                     primary_key=True,
+                     serialize=False,
+                     verbose_name='ID')),
                 ('start_index', models.IntegerField()),
                 ('end_index', models.IntegerField()),
                 ('date_str', models.CharField(max_length=50)),
                 ('date', models.DateTimeField(null=True)),
-                ('seed', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='date_entity', to='web.Article')),
+                ('seed',
+                 models.ForeignKey(
+                     on_delete=django.db.models.deletion.CASCADE,
+                     related_name='date_entity',
+                     to='web.Article')),
             ],
             options={
                 'db_table': 'date_entity',
@@ -28,11 +37,20 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='InjuredEntity',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id',
+                 models.AutoField(
+                     auto_created=True,
+                     primary_key=True,
+                     serialize=False,
+                     verbose_name='ID')),
                 ('start_index', models.IntegerField()),
                 ('end_index', models.IntegerField()),
                 ('num_injured', models.IntegerField()),
-                ('seed', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='injured_entity', to='web.Article')),
+                ('seed',
+                 models.OneToOneField(
+                     on_delete=django.db.models.deletion.CASCADE,
+                     related_name='injured_entity',
+                     to='web.Article')),
             ],
             options={
                 'db_table': 'injured_entity',
@@ -41,11 +59,20 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='KilledEntity',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id',
+                 models.AutoField(
+                     auto_created=True,
+                     primary_key=True,
+                     serialize=False,
+                     verbose_name='ID')),
                 ('start_index', models.IntegerField()),
                 ('end_index', models.IntegerField()),
                 ('num_killed', models.IntegerField()),
-                ('seed', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='killed_entity', to='web.Article')),
+                ('seed',
+                 models.OneToOneField(
+                     on_delete=django.db.models.deletion.CASCADE,
+                     related_name='killed_entity',
+                     to='web.Article')),
             ],
             options={
                 'db_table': 'killed_entity',
@@ -54,7 +81,12 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='LabelPost',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id',
+                 models.AutoField(
+                     auto_created=True,
+                     primary_key=True,
+                     serialize=False,
+                     verbose_name='ID')),
                 ('urls', models.TextField()),
                 ('date', models.DateTimeField(auto_now_add=True)),
             ],
@@ -65,11 +97,20 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='LocationEntity',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id',
+                 models.AutoField(
+                     auto_created=True,
+                     primary_key=True,
+                     serialize=False,
+                     verbose_name='ID')),
                 ('start_index', models.IntegerField()),
                 ('end_index', models.IntegerField()),
                 ('location', models.CharField(max_length=200)),
-                ('seed', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='location_entity', to='web.Article')),
+                ('seed',
+                 models.OneToOneField(
+                     on_delete=django.db.models.deletion.CASCADE,
+                     related_name='location_entity',
+                     to='web.Article')),
             ],
             options={
                 'db_table': 'location_entity',
@@ -78,11 +119,20 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='PerpetratorEntity',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id',
+                 models.AutoField(
+                     auto_created=True,
+                     primary_key=True,
+                     serialize=False,
+                     verbose_name='ID')),
                 ('start_index', models.IntegerField()),
                 ('end_index', models.IntegerField()),
                 ('perpetrator', models.CharField(max_length=100)),
-                ('seed', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='perpetrator_entity', to='web.Article')),
+                ('seed',
+                 models.OneToOneField(
+                     on_delete=django.db.models.deletion.CASCADE,
+                     related_name='perpetrator_entity',
+                     to='web.Article')),
             ],
             options={
                 'db_table': 'perpetrator_entity',

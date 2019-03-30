@@ -22,9 +22,7 @@ class Migration(migrations.Migration):
             model_name='killedentity',
             name='seed',
         ),
-        migrations.DeleteModel(
-            name='LabelPost',
-        ),
+        migrations.DeleteModel(name='LabelPost',),
         migrations.RemoveField(
             model_name='locationentity',
             name='seed',
@@ -33,19 +31,9 @@ class Migration(migrations.Migration):
             model_name='perpetratorentity',
             name='seed',
         ),
-        migrations.DeleteModel(
-            name='DateEntity',
-        ),
-        migrations.DeleteModel(
-            name='InjuredEntity',
-        ),
-        migrations.DeleteModel(
-            name='KilledEntity',
-        ),
-        migrations.DeleteModel(
-            name='LocationEntity',
-        ),
-        migrations.DeleteModel(
-            name='PerpetratorEntity',
-        ),
+        migrations.DeleteModel(name='DateEntity',),
+        migrations.DeleteModel(name='InjuredEntity',),
+        migrations.DeleteModel(name='KilledEntity',),
+        migrations.DeleteModel(name='LocationEntity',),
+        migrations.DeleteModel(name='PerpetratorEntity',),
     ]
