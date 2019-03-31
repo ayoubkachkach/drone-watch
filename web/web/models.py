@@ -1,4 +1,5 @@
 from django.db import models
+from enum import Enum
 
 class LabelPost(models.Model):
 
@@ -7,6 +8,7 @@ class LabelPost(models.Model):
 
     class Meta:
         db_table = 'labelpost'
+
 
 class Source(models.Model):
     '''Model holding info on sources'''
@@ -21,6 +23,11 @@ class Source(models.Model):
     def __str__(self):
         return self.name
 
+class Types(Enum):
+    STRIKE = "Strike"
+    MANY_STRIKES = "Many strikes"
+    EDITORIAL = "Editorial"
+    NOT_DRONE = "Not Drone"
 
 class Article(models.Model):
     ''' Class representing model of a scraper article. '''
@@ -37,15 +44,21 @@ class Article(models.Model):
     # True if article has been labelled manually, False otherwise
     is_ground_truth = models.BooleanField(null=True, default=False)
 
+    type = models.CharField(
+      max_length=20,
+      choices=[(tag, tag.value) for tag in Types],  # Choices is a list of Tuple
+      null=True
+    )
+
     class Meta:
         db_table = 'article'
 
     def __str__(self):
-        return '{} ({})'.format(self.title, self.source_name)
+        return '{} ({})'.format(self.title, self.source.namexx)
 
 
 class DateEntity(models.Model):
-    seed = models.ForeignKey(
+    seed = models.OneToOneField(
         Article, on_delete=models.CASCADE, related_name='date_entity')
     start_index = models.IntegerField()
     end_index = models.IntegerField()
@@ -62,7 +75,7 @@ class LocationEntity(models.Model):
     start_index = models.IntegerField()
     end_index = models.IntegerField()
     location = models.CharField(max_length=200)
-    
+
     #TODO: come up with fields to better describe location (e.g. latitude, longitude ..)
 
     class Meta:

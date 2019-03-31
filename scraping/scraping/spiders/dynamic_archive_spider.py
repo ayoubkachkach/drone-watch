@@ -18,11 +18,12 @@ from selenium.common.exceptions import TimeoutException
 from scrapy.http import TextResponse
 import time
 
+
 def get_suffix_size(a, b):
     a_idx = len(a) - 1
     b_idx = len(b) - 1
     size = 0
-    
+
     while a_idx >= 0 and b_idx >= 0:
         if a[a_idx] != b[b_idx]:
             break
@@ -31,6 +32,7 @@ def get_suffix_size(a, b):
         b_idx -= 1
 
     return size
+
 
 class DynamicArchiveSpider(Spider):
     name = 'dynamic_archive'
@@ -58,7 +60,7 @@ class DynamicArchiveSpider(Spider):
                 callback=parse_article)
         ]
         self.start_urls = self.website.seed_urls
-        if(start_url):
+        if (start_url):
             self.start_urls = [start_url]
         self.source = Source.objects.get_or_create(
             name=self.website.name,
@@ -76,11 +78,18 @@ class DynamicArchiveSpider(Spider):
                 next = self.driver.find_element_by_id(website.next_button_id)
                 next.click()
                 time.sleep(5)
-                sel_response = TextResponse(url=self.driver.current_url, body=self.driver.page_source, encoding='utf-8')
-                if(prefix_size == 0):
-                    suffix_size = get_suffix_size(response.css('a::attr(href)').re(website.url_patterns), sel_response.css('a::attr(href)').re(website.url_patterns))
+                sel_response = TextResponse(
+                    url=self.driver.current_url,
+                    body=self.driver.page_source,
+                    encoding='utf-8')
+                if (prefix_size == 0):
+                    suffix_size = get_suffix_size(
+                        response.css('a::attr(href)').re(website.url_patterns),
+                        sel_response.css('a::attr(href)').re(
+                            website.url_patterns))
                 # extract all links from current page that respect pattern. Remove common links found previously.
-                links = sel_response.css('a::attr(href)').re(website.url_patterns)[prefix_size:-suffix_size]
+                links = sel_response.css('a::attr(href)').re(
+                    website.url_patterns)[prefix_size:-suffix_size]
                 prefix_size += len(links)
                 links = set(links)
                 if (not links):
@@ -92,13 +101,19 @@ class DynamicArchiveSpider(Spider):
                     links = (response.urljoin(link) for link in links if link)
 
                 # only keep unvisited links
-                links = (link for link in links if not Article.objects.filter(url=link))
+                links = (link for link in links
+                         if not Article.objects.filter(url=link))
 
                 for link in links:
-                    yield response.follow(link, callback=parse_article, meta={'spider': self, 'website': website}, priority=1)
+                    yield response.follow(
+                        link,
+                        callback=parse_article,
+                        meta={
+                            'spider': self,
+                            'website': website
+                        },
+                        priority=1)
             except Exception as e:
                 break
         driver.close()
         driver.quit()
-
-

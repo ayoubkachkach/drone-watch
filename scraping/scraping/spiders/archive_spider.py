@@ -24,55 +24,57 @@ def parse_date(dates):
             return date
     return None
 
+
 def parse_article(response):
-        spider = response.meta['spider']
-        website = response.meta['website']
-        title = ''
-        body = ''
-        date = None
+    spider = response.meta['spider']
+    website = response.meta['website']
+    title = ''
+    body = ''
+    date = None
 
-        titles = response.xpath(
-            '//*[contains(@class, \'%s\')]/descendant-or-self::*/text()' %
-            website.title_class).getall()
-        if (not titles):
-            spider.logger.warning('No title found for article in {}'.format(
-                response.url))
-        else:
-            title = titles[0].strip()
+    titles = response.xpath(
+        '//*[contains(@class, \'%s\')]/descendant-or-self::*/text()' %
+        website.title_class).getall()
+    if (not titles):
+        spider.logger.warning('No title found for article in {}'.format(
+            response.url))
+    else:
+        title = titles[0].strip()
 
-        # append text from all children nodes into one
-        paragraphs = response.xpath(
-            '//div[contains(@class, \'%s\')]/descendant-or-self::*/text()' %
-            website.body_class).getall()
-        if (paragraphs):
-            body = '\n'.join(p.strip() for p in paragraphs)
-        else:
-            spider.logger.warning('No body found for article in {}'.format(
-                response.url))
-            return
+    # append text from all children nodes into one
+    paragraphs = response.xpath(
+        '//div[contains(@class, \'%s\')]/descendant-or-self::*/text()' %
+        website.body_class).getall()
+    if (paragraphs):
+        body = '\n'.join(p.strip() for p in paragraphs)
+    else:
+        spider.logger.warning('No body found for article in {}'.format(
+            response.url))
+        return
 
-        # append text from all children nodes into one
-        dates = response.xpath('//*[contains(@class, \'%s\')]/text()' %
-                               website.date_class).getall()
+    # append text from all children nodes into one
+    dates = response.xpath(
+        '//*[contains(@class, \'%s\')]/text()' % website.date_class).getall()
 
-        date = parse_date(dates)
+    date = parse_date(dates)
 
-        if (not date):
-            spider.logger.warning('No date found for article in {}'.format(
-                response.url))
-            date = datetime.datetime(1, 1, 1)
+    if (not date):
+        spider.logger.warning('No date found for article in {}'.format(
+            response.url))
+        date = datetime.datetime(1, 1, 1)
 
-        # clean body from javascript escape characters
-        body = re.sub(re.compile('\\xad'), '', body)
-        body = re.sub(re.compile('\\n'), ' ', body)
+    # clean body from javascript escape characters
+    body = re.sub(re.compile('\\xad'), '', body)
+    body = re.sub(re.compile('\\n'), ' ', body)
 
-        article_item = ArticleItem(
-            title=title,
-            body=body,
-            date_published=date,
-            url=response.url,
-            source=spider.source)
-        yield article_item
+    article_item = ArticleItem(
+        title=title,
+        body=body,
+        date_published=date,
+        url=response.url,
+        source=spider.source)
+    yield article_item
+
 
 class ArchiveSpider(Spider):
     name = 'archive'
@@ -122,12 +124,18 @@ class ArchiveSpider(Spider):
         links = (link for link in links if not Article.objects.filter(url=link))
 
         for link in links:
-            yield response.follow(link, callback=parse_article, meta={'spider': self, 'website': website})
+            yield response.follow(
+                link,
+                callback=parse_article,
+                meta={
+                    'spider': self,
+                    'website': website
+                })
 
         request = self.next_request(self, response)
         # if there is no next page, stop
         if (not request):
             return
 
-        self.page_number +=1
+        self.page_number += 1
         yield request

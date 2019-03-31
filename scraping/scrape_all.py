@@ -7,4 +7,3 @@ spider = 'archive'
 for website in ['pbs', 'reuters', 'dawn']:
     process.crawl(spider, website_str=website)
 process.start()
-

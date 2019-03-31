@@ -85,7 +85,8 @@ KHAAMA = Website(
     name='khaama',
     homepage='https://www.khaama.com/',
     seed_urls=['https://www.khaama.com/category/afghanistan/'],
-    url_patterns=re.compile(r'https:\/\/www\.khaama\.com\/[^\/]*-[^\/]*-[^\/]*\/'),
+    url_patterns=re.compile(
+        r'https:\/\/www\.khaama\.com\/[^\/]*-[^\/]*-[^\/]*\/'),
     relative_url=False,
     title_class='single-title',
     body_class='post-content',
@@ -94,4 +95,4 @@ KHAAMA = Website(
     next_button_id='load-more',
     next_request=None)
 
-websites = {'DAWN': DAWN, 'KHAAMA':KHAAMA, 'REUTERS': REUTERS, 'PBS': PBS}
+websites = {'DAWN': DAWN, 'KHAAMA': KHAAMA, 'REUTERS': REUTERS, 'PBS': PBS}
