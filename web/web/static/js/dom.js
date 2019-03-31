@@ -1,10 +1,3 @@
-// text.addEventListener('mouseup', function(event){
-//     selectedText = getSelectedString();
-//     if(selectedText.length !== 0){
-//         console.log(selectedText);
-//     }
-// })
-
 // const COLORS = [
 //   "#00ffff",
 //   "#a52a2a",
@@ -48,7 +41,7 @@ const LABEL_ATTRIBUTE = 'label';
 const CONTENT_ID = 'content';
 var results = {'article_url': window.page_data.article_url};
 loadedLabels = JSON.parse(window.page_data.loadedLabels);
-//console.log(loadedLabels);
+selectType(JSON.parse(window.page_data.articleType));
 
 //assign color to each label
 var labelToColor = {};
@@ -64,7 +57,7 @@ function highlightRange(start_index, end_index, label){
     color = labelToColor[label];
     var content = document.getElementById("content");
     var str = content.innerHTML;
-    console.log("Initial labeling: " + label)
+
     highlightContent = str.slice(start_index, end_index + 1);
     str = str.slice(0, start_index) + `<span style="background-color: ${color}; display: inline;" id= ${label}>` + highlightContent + '</span>' + str.slice(end_index + 1);
     content.innerHTML = str;
@@ -99,17 +92,23 @@ function getSelectedString() {
     return "";
 }
 
+
+function removeHighlight(label){
+    style = document.getElementById(label);
+    if(style !== null){
+        delete results[label]
+        $(style).replaceWith(function() { return this.innerHTML; });
+    }
+
+}
+
 function highlightSelection(event) {
     var label = event.target.getAttribute(LABEL_ATTRIBUTE);
     var range = window.getSelection().getRangeAt(0);
     var highlight = document.createElement("span");
     var color = labelToColor[label];
 
-    style = document.getElementById(label);
-    console.log(label);
-    if(style !== null){
-        $(style).replaceWith(function() { return this.innerHTML; });
-    }
+    removeHighlight(label);
 
     highlight.setAttribute(
         "style",
@@ -122,13 +121,28 @@ function highlightSelection(event) {
     range.surroundContents(highlight);
 }
 
+function clearHighlights(){
+    for (var i = 0; i < LABELS.length; i++) {
+        var label = LABELS[i];
+        removeHighlight(label)
+    }
+}
+
 function getSelectedButtonValue(){
-    checkedButton = document.querySelector('input[name="type"]:checked');
+    checkedButton = document.querySelector('input[name="btn"]:checked');
     if(checkedButton === null){
         return "";
     }
 
     return checkedButton.value;
+}
+
+function selectType(type){
+    var checkbox = document.getElementById(type);
+    if(checkbox === null){
+        checkbox = document.getElementById('NOT_DRONE');
+    }
+    checkbox.checked = true;
 }
 
 function labelSelection(event) {
@@ -191,19 +205,27 @@ for (var i = 0; i < LABELS.length; i++) {
 
 var button = document.createElement("button");
 
-button.innerHTML = "Print results";
+button.innerHTML = "Save";
 button.setAttribute("style", "margin-top: 20px; margin-bottom: 20px;");
 navbar.appendChild(document.createElement("br"));
 navbar.appendChild(button);
 navbar.appendChild(document.createElement("br"));
 button.addEventListener("click", function(event) {
     buttonValue = getSelectedButtonValue();
-    if(buttonValue === "")
+    if(buttonValue === ""){
         buttonValue = "NOT_DRONE";
-    results["type"] = buttonValue;
+    }
+    results["article_type"] = buttonValue;
     $.ajax({
       url: window.page_data.url,
       type: 'POST',
       data: JSON.stringify(results),
     });
 });
+
+button = document.createElement("button");
+button.innerHTML = "Clear highlight";
+//button.setAttribute("style", "margin-top: 20px; margin-bottom: 20px;");
+//navbar.appendChild(document.createElement("br"));
+button.addEventListener("click", clearHighlights);
+navbar.appendChild(button);

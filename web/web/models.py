@@ -24,10 +24,10 @@ class Source(models.Model):
         return self.name
 
 class Types(Enum):
-    STRIKE = "Strike"
-    MANY_STRIKES = "Many strikes"
-    EDITORIAL = "Editorial"
-    NOT_DRONE = "Not Drone"
+    NOT_DRONE = "NOT_DRONE"
+    STRIKE = "STRIKE"
+    MANY_STRIKES = "MANY_STRIKES"
+    EDITORIAL = "EDITORIAL"
 
 class Article(models.Model):
     ''' Class representing model of a scraper article. '''
@@ -44,7 +44,7 @@ class Article(models.Model):
     # True if article has been labelled manually, False otherwise
     is_ground_truth = models.BooleanField(null=True, default=False)
 
-    type = models.CharField(
+    article_type = models.CharField(
       max_length=20,
       choices=[(tag, tag.value) for tag in Types],  # Choices is a list of Tuple
       null=True
@@ -54,7 +54,7 @@ class Article(models.Model):
         db_table = 'article'
 
     def __str__(self):
-        return '{} ({})'.format(self.title, self.source.namexx)
+        return '{} ({})'.format(self.title, self.source.name)
 
 
 class DateEntity(models.Model):
