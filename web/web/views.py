@@ -9,6 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from web.forms import HomeForm
 from web.models import Article, DateEntity, LocationEntity, KilledEntity, InjuredEntity, PerpetratorEntity, Types
+from text2digits import text2digits
 
 
 class LabelHomeView(TemplateView):
@@ -52,6 +53,8 @@ def store_label(results, article):
     article.is_ground_truth = True
     article.article_type = article_type
 
+    t2d = text2digits.Text2Digits()
+
     if(article_type == Types.STRIKE):
         article.classification_score = 1
     else:
@@ -81,23 +84,25 @@ def store_label(results, article):
             })
         #location.save()
     if (killed_entity):
+        num_killed = t2d.convert(killed_entity['content'])
         killed, _ = KilledEntity.objects.update_or_create(
             seed=article,
             defaults={
                 'seed': article,
                 'start_index': int(killed_entity['start_index']),
                 'end_index': int(killed_entity['end_index']),
-                'num_killed': int(killed_entity['content'])
+                'num_killed': int(num_killed)
             })
         #killed.save()
     if (injured_entity):
+        num_injured = t2d.convert(injured_entity['content'])
         injured, _ = InjuredEntity.objects.update_or_create(
             seed=article,
             defaults={
                 'seed': article,
                 'start_index': int(injured_entity['start_index']),
                 'end_index': int(injured_entity['end_index']),
-                'num_injured': int(injured_entity['content'])
+                'num_injured': int(num_injured)
             })
         #injured.save()
     if (perpetrator_entity):
@@ -164,9 +169,10 @@ def label_article(request, idx=None):
     key_to_remove = '_state'
     for key in labels.keys():
         if labels[key] and key_to_remove in labels[key]:
+            if(key == 'date'):
+                del labels['date']['date'] 
             del labels[key][key_to_remove]
 
-    #get title and body from DB
     return render(
         request, template_label_article, {
             'idx': idx,
