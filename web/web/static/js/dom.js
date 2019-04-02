@@ -35,7 +35,7 @@ const COLORS = [
     '#a41a1a', //brown    
 ];
 
-const LABELS = ["date", "location", "killed", "injured", "perpetrator"];
+const LABELS = ["date", "perpetrator", "killed", "injured", "country", "region"];
 const MAX_LABELS = COLORS.length;
 const LABEL_ATTRIBUTE = 'label';
 const CONTENT_ID = 'content';
@@ -140,7 +140,7 @@ function getSelectedButtonValue(){
 function selectType(type){
     var checkbox = document.getElementById(type);
     if(checkbox === null){
-        checkbox = document.getElementById('NOT_DRONE');
+        checkbox = document.getElementById('NOT_STRIKE');
     }
     checkbox.checked = true;
 }
@@ -171,6 +171,7 @@ function labelSelection(event) {
         precedingRange.setEnd(selectedRange.startContainer, selectedRange.startOffset);
 
         var textPrecedingSelection = precedingRange.toString();
+        console.log(textPrecedingSelection);
         var startIndex = textPrecedingSelection.length;
         var endIndex = startIndex + selectedString.length - 1;
     }

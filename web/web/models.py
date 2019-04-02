@@ -1,6 +1,7 @@
 from django.db import models
 from enum import Enum
 
+
 class LabelPost(models.Model):
 
     urls = models.TextField()
@@ -23,11 +24,13 @@ class Source(models.Model):
     def __str__(self):
         return self.name
 
+
 class Types(Enum):
-    NOT_DRONE = "NOT_DRONE"
+    NOT_STRIKE = "NOT_STRIKE"
     STRIKE = "STRIKE"
     MANY_STRIKES = "MANY_STRIKES"
     EDITORIAL = "EDITORIAL"
+
 
 class Article(models.Model):
     ''' Class representing model of a scraper article. '''
@@ -45,10 +48,10 @@ class Article(models.Model):
     is_ground_truth = models.BooleanField(null=True, default=False)
 
     article_type = models.CharField(
-      max_length=20,
-      choices=[(tag, tag.value) for tag in Types],  # Choices is a list of Tuple
-      null=True
-    )
+        max_length=20,
+        choices=[(tag, tag.value) for tag in Types
+                ],  # Choices is a list of Tuple
+        null=True)
 
     class Meta:
         db_table = 'article'
@@ -72,9 +75,12 @@ class DateEntity(models.Model):
 class LocationEntity(models.Model):
     seed = models.OneToOneField(
         Article, on_delete=models.CASCADE, related_name='location_entity')
-    start_index = models.IntegerField()
-    end_index = models.IntegerField()
-    location = models.CharField(max_length=200)
+    country_start_index = models.IntegerField(null=True)
+    region_start_index = models.IntegerField(null=True)
+    country_end_index = models.IntegerField(null=True)
+    region_end_index = models.IntegerField(null=True)
+    country = models.CharField(max_length=200, null=True)
+    region = models.CharField(max_length=200, null=True)
 
     #TODO: come up with fields to better describe location (e.g. latitude, longitude ..)
 

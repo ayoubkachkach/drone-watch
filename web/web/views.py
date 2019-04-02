@@ -1,15 +1,22 @@
 import dateparser
 
-import simplejson
 import json
+import simplejson
+
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
-from web.forms import HomeForm
-from web.models import Article, DateEntity, LocationEntity, KilledEntity, InjuredEntity, PerpetratorEntity, Types
 from text2digits import text2digits
+from web.forms import HomeForm
+from web.models import Article
+from web.models import DateEntity
+from web.models import InjuredEntity
+from web.models import KilledEntity
+from web.models import LocationEntity
+from web.models import PerpetratorEntity
+from web.models import Types
 
 
 class LabelHomeView(TemplateView):
@@ -33,19 +40,20 @@ class LabelHomeView(TemplateView):
 def store_label(results, article):
     #['date', 'location', 'deaths', 'injured']
     date_entity = results.get('date', None)
-    location_entity = results.get('location', None)
+    country_entity = results.get('country', None)
+    region_entity = results.get('region', None)
     killed_entity = results.get('killed', None)
     injured_entity = results.get('injured', None)
     perpetrator_entity = results.get('perpetrator', None)
     article_type = results.get('article_type', None)
-    
+
     DateEntity.objects.filter(seed=article).delete()
     LocationEntity.objects.filter(seed=article).delete()
     KilledEntity.objects.filter(seed=article).delete()
     InjuredEntity.objects.filter(seed=article).delete()
     PerpetratorEntity.objects.filter(seed=article).delete()
-    
-    if(not article_type):
+
+    if (not article_type):
         article_type = Types.NOT_DRONE.value
     else:
         article_type = getattr(Types, article_type).value
@@ -55,7 +63,7 @@ def store_label(results, article):
 
     t2d = text2digits.Text2Digits()
 
-    if(article_type == Types.STRIKE):
+    if (article_type == Types.STRIKE.value):
         article.classification_score = 1
     else:
         article.classification_score = 0
@@ -73,17 +81,30 @@ def store_label(results, article):
             })
 
         #date.save()
-    if (location_entity):
+    if (country_entity):
         location, _ = LocationEntity.objects.update_or_create(
             seed=article,
             defaults={
                 'seed': article,
-                'start_index': int(location_entity['start_index']),
-                'end_index': int(location_entity['end_index']),
-                'location': location_entity['content']
+                'country_start_index': int(country_entity['start_index']),
+                'country_end_index': int(country_entity['end_index']),
+                'country': country_entity['content'],
             })
+
+    if (region_entity):
+        location, _ = LocationEntity.objects.update_or_create(
+            seed=article,
+            defaults={
+                'seed': article,
+                'region_start_index': int(region_entity['start_index']),
+                'region_end_index': int(region_entity['end_index']),
+                'region': region_entity['content']
+            })
+
         #location.save()
     if (killed_entity):
+        if(killed_entity['content'].lower() == 'a'):
+            num_killed = 1
         num_killed = t2d.convert(killed_entity['content'])
         killed, _ = KilledEntity.objects.update_or_create(
             seed=article,
@@ -116,6 +137,7 @@ def store_label(results, article):
             })
     article.save()
 
+
 def get_related_object(article, field_name):
     result = None
     try:
@@ -125,61 +147,69 @@ def get_related_object(article, field_name):
 
     return result
 
+
 def get_labels_dict(article):
     entity_labels = {}
     entity_labels['date'] = get_related_object(article, 'date_entity')
     entity_labels['location'] = get_related_object(article, 'location_entity')
     entity_labels['killed'] = get_related_object(article, 'killed_entity')
     entity_labels['injured'] = get_related_object(article, 'injured_entity')
-    entity_labels['perpetrator'] = get_related_object(article, 'perpetrator_entity')
-    if(entity_labels['date']):
+    entity_labels['perpetrator'] = get_related_object(article,
+                                                      'perpetrator_entity')
+    if (entity_labels['date']):
         entity_labels['date'] = entity_labels['date'].__dict__
 
-    if(entity_labels['location']):
+    if (entity_labels['location']):
         entity_labels['location'] = entity_labels['location'].__dict__
 
-    if(entity_labels['killed']):
+    if (entity_labels['killed']):
         entity_labels['killed'] = entity_labels['killed'].__dict__
 
-    if(entity_labels['injured']):
+    if (entity_labels['injured']):
         entity_labels['injured'] = entity_labels['injured'].__dict__
 
-    if(entity_labels['perpetrator']):
+    if (entity_labels['perpetrator']):
         entity_labels['perpetrator'] = entity_labels['perpetrator'].__dict__
 
-    entity_labels = {key:val for key, val in entity_labels.items() if val is not None}
+    entity_labels = {
+        key: val for key, val in entity_labels.items() if val is not None
+    }
+
+    key_to_remove = '_state'
+    for key in entity_labels.keys():
+        if entity_labels[key] and key_to_remove in entity_labels[key]:
+            if (key == 'date'):
+                del entity_labels['date']['date']
+            del entity_labels[key][key_to_remove]
 
     return entity_labels
 
 
 @csrf_exempt
-def label_article(request, idx=None):
+def label_article(request, idx=0):
+    if(idx >= len(request.session['urls'])):
+        return render(request, 'no_article.html')
 
-    template_label_article = 'label_article.html'
     url = request.session['urls'][idx]
     article = Article.objects.get(url=url)
-
     if (request.method == 'POST'):
         results = request.POST.getlist('results[]')
         if (not results):
             pass
         results = json.loads(request.body)
         store_label(results, article)
+
     labels = get_labels_dict(article)
-    key_to_remove = '_state'
-    for key in labels.keys():
-        if labels[key] and key_to_remove in labels[key]:
-            if(key == 'date'):
-                del labels['date']['date'] 
-            del labels[key][key_to_remove]
 
     return render(
-        request, template_label_article, {
+        request, 'label_article.html', {
             'idx': idx,
             'article': article,
             'next': idx + 1,
             'prev': max(0, idx - 1),
             'article_url': url,
             'loadedLabels': simplejson.dumps(labels),
-            'articleType': simplejson.dumps(article.article_type)
+            'articleType': simplejson.dumps(article.article_type),
+            'is_labeled': article.is_ground_truth,
+            'id': article.id
         })

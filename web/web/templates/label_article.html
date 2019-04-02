@@ -13,7 +13,14 @@
 <body> 
   <header>
   <div id="navbar" class="header navbar-fixed-top">
-    <h1>Labeler</h1>
+    <h1 style="display: inline-block;">Labeler</h1>
+    <h2 style="display: inline-block; padding-left: 200px;">id: {{ id }}</h2>
+    <h2 style="display: inline-block; padding-left:300px;">isLabeled: </h2>
+    {% if is_labeled %}
+      <h2 style="color:green; display: inline-block;">Labeled</h2>
+    {% else %}
+      <h2 style="color:red; display: inline-block;">Not labeled</h2>
+    {% endif %}
     <div class="button-container">
       <form method="GET" class="pagination-form" action={% url 'label_article' prev %}> 
         {% csrf_token %}
@@ -24,7 +31,7 @@
         <button type="submit">Next</button>
       </form>
       <form action="">
-        <input id="NOT_DRONE" type="radio" name="btn" value="NOT_DRONE"><span class="inline">Not drone</span>
+        <input id="NOT_STRIKE" type="radio" name="btn" value="NOT_STRIKE"><span class="inline">Not strike</span>
         <input id="STRIKE" type="radio" name="btn" value="STRIKE"> <span class="inline">Strike</span>
         <input id="MANY_STRIKES" type="radio" name="btn" value="MANY_STRIKES"><span class="inline">Many strikes</span>
         <input id="EDITORIAL" type="radio" name="btn" value="EDITORIAL"><span class="inline">Editorial</span>

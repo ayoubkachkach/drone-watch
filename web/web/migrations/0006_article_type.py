@@ -14,6 +14,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='article',
             name='type',
-            field=models.CharField(choices=[(web.models.Types('NOT_DRONE'), 'NOT_DRONE'), (web.models.Types('STRIKE'), 'STRIKE'), (web.models.Types('MANY_STRIKES'), 'MANY_STRIKES'), (web.models.Types('EDITORIAL'), 'EDITORIAL')], max_length=20, null=True),
+            field=models.CharField(
+                choices=[(web.models.Types('NOT_STRIKE'), 'NOT_STRIKE'),
+                         (web.models.Types('STRIKE'), 'STRIKE'),
+                         (web.models.Types('MANY_STRIKES'), 'MANY_STRIKES'),
+                         (web.models.Types('EDITORIAL'), 'EDITORIAL')],
+                max_length=20,
+                null=True),
         ),
     ]
