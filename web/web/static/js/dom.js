@@ -70,14 +70,19 @@ function loadLabels(labels) {
     for (var i = 0; i < foundLabels.length; i++) {
         var label = foundLabels[i];
         var loadedLabel = loadedLabels[label];
+        
         if(loadedLabel === null || loadedLabel == undefined)
             continue;
 
+        start_index = loadedLabel['start_index']
+        end_index = loadedLabel['end_index']
+        if(start_index == null || end_index == null) continue;
+
         content = highlightRange(loadedLabel['start_index'], loadedLabel['end_index'], label);
         var tagInfo = {
-        'content':content,
-        'start_index':loadedLabel['start_index'], 
-        'end_index':loadedLabel['end_index']
+            'content':content,
+            'start_ixndex':start_index, 
+            'end_index':end_index
         };
 
         results[label] = tagInfo;
