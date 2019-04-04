@@ -10,10 +10,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from web.forms import HomeForm
 from web.models import Article
-from web.utils import make_labels_dict
-from web.utils import get_related_object
-from web.utils import store_label
+from web.utils import get_labels
 from web.utils import get_object_or_None
+from web.utils import store_label
+
 
 class LabelHomeView(TemplateView):
     template_home = 'label.html'
@@ -36,20 +36,29 @@ class LabelHomeView(TemplateView):
 @csrf_exempt
 def label_article(request, idx=0):
     max_idx = len(request.session['urls']) - 1
-    if (idx > max_idx ):
-        return render(request, 'error_message.html', {'error_message':'index {} exceeds max index ({})'.format(idx, max_idx)})
+    if (idx > max_idx):
+        return render(request, 'error_message.html', {
+            'error_message':
+            'index {} exceeds max index ({})'.format(idx, max_idx)
+        })
+
     url = request.session['urls'][idx]
     article = get_object_or_None(Article, url=url)
-    if(not article):
-        return render(request, 'error_message.html', {'error_message':'No matching article found for url: {}'.format(url)})
+    if (not article):
+        return render(request, 'error_message.html', {
+            'error_message':
+            'No matching article found for url: {}'.format(url)
+        })
+
     if (request.method == 'POST'):
         results = request.POST.getlist('results[]')
         if (not results):
             pass
+
         results = json.loads(request.body)
         store_label(results, article)
 
-    labels = make_labels_dict(article)
+    labels = get_labels(article)
 
     return render(
         request, 'label_article.html', {

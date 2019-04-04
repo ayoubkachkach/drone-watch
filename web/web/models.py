@@ -114,31 +114,9 @@ class LocationEntity(models.Model):
         }
 
 
-class VictimEntity(models.Model):
-    victim = models.CharField(max_length=200)
-    start_index = models.IntegerField()
-    end_index = models.IntegerField()
-
-    class Meta:
-        db_table = 'victim_entity'
-
-    def get_dict(self):
-        return {
-            'content': self.victim,
-            'start_index': self.start_index,
-            'end_index': self.end_index
-        }
-
-
 class CasualtyEntity(models.Model):
     seed = models.ForeignKey(
         Article, on_delete=models.CASCADE, related_name='casualties')
-
-    victim_entity = models.OneToOneField(
-        VictimEntity,
-        on_delete=models.CASCADE,
-        related_name='casualty',
-        null=True)
 
     num = models.CharField(max_length=200)
     start_index = models.IntegerField()
@@ -159,9 +137,32 @@ class CasualtyEntity(models.Model):
             'end_index': self.end_index,
             'type': self.casualty_type
         }
-        if (self.victim_entity != None):
+        if (self.victim != None):
             result['victim'] = self.victim_entity.get_dict()
+
         return result
+
+
+class VictimEntity(models.Model):
+    victim = models.CharField(max_length=200)
+    start_index = models.IntegerField()
+    end_index = models.IntegerField()
+
+    seed = models.OneToOneField(
+        CasualtyEntity,
+        on_delete=models.CASCADE,
+        related_name='victim',
+        null=True)
+
+    class Meta:
+        db_table = 'victim_entity'
+
+    def get_dict(self):
+        return {
+            'content': self.victim,
+            'start_index': self.start_index,
+            'end_index': self.end_index
+        }
 
 
 class PerpetratorEntity(models.Model):
