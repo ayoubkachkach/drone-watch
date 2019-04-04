@@ -13,7 +13,7 @@ from web.models import Article
 from web.utils import make_labels_dict
 from web.utils import get_related_object
 from web.utils import store_label
-
+from web.utils import get_object_or_None
 
 class LabelHomeView(TemplateView):
     template_home = 'label.html'
@@ -35,11 +35,13 @@ class LabelHomeView(TemplateView):
 
 @csrf_exempt
 def label_article(request, idx=0):
-    if (idx >= len(request.session['urls'])):
-        return render(request, 'no_article.html')
-
+    max_idx = len(request.session['urls']) - 1
+    if (idx > max_idx ):
+        return render(request, 'error_message.html', {'error_message':'index {} exceeds max index ({})'.format(idx, max_idx)})
     url = request.session['urls'][idx]
-    article = Article.objects.get(url=url)
+    article = get_object_or_None(Article, url=url)
+    if(not article):
+        return render(request, 'error_message.html', {'error_message':'No matching article found for url: {}'.format(url)})
     if (request.method == 'POST'):
         results = request.POST.getlist('results[]')
         if (not results):
