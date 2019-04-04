@@ -26,10 +26,17 @@ class Source(models.Model):
 
 
 class Types(Enum):
+
     NOT_STRIKE = "NOT_STRIKE"
     STRIKE = "STRIKE"
     MANY_STRIKES = "MANY_STRIKES"
     EDITORIAL = "EDITORIAL"
+
+
+class CasualtyType(Enum):
+
+    INJURY = "INJURY"
+    DEATH = "DEATH"
 
 
 class Article(models.Model):
@@ -71,6 +78,13 @@ class DateEntity(models.Model):
     class Meta:
         db_table = 'date_entity'
 
+    def get_dict(self):
+        return {
+            'content': self.date_str,
+            'start_index': self.start_index,
+            'end_index': self.end_index
+        }
+
 
 class LocationEntity(models.Model):
     seed = models.OneToOneField(
@@ -82,32 +96,72 @@ class LocationEntity(models.Model):
     country = models.CharField(max_length=200, null=True)
     region = models.CharField(max_length=200, null=True)
 
-    #TODO: come up with fields to better describe location (e.g. latitude, longitude ..)
-
     class Meta:
         db_table = 'location_entity'
 
+    def get_dict(self):
+        return {
+            'country': {
+                'start_index': self.country_start_index,
+                'end_index': self.country_end_index,
+                'content': self.country
+            },
+            'region': {
+                'start_index': self.region_start_index,
+                'end_index': self.region_end_index,
+                'content': self.region
+            }
+        }
 
-class KilledEntity(models.Model):
-    seed = models.OneToOneField(
-        Article, on_delete=models.CASCADE, related_name='killed_entity')
+
+class VictimEntity(models.Model):
+    victim = models.CharField(max_length=200)
     start_index = models.IntegerField()
     end_index = models.IntegerField()
-    num_killed = models.IntegerField()
 
     class Meta:
-        db_table = 'killed_entity'
+        db_table = 'victim_entity'
+
+    def get_dict(self):
+        return {
+            'content': self.victim,
+            'start_index': self.start_index,
+            'end_index': self.end_index
+        }
 
 
-class InjuredEntity(models.Model):
-    seed = models.OneToOneField(
-        Article, on_delete=models.CASCADE, related_name='injured_entity')
+class CasualtyEntity(models.Model):
+    seed = models.ForeignKey(
+        Article, on_delete=models.CASCADE, related_name='casualties')
+
+    victim_entity = models.OneToOneField(
+        VictimEntity,
+        on_delete=models.CASCADE,
+        related_name='casualty',
+        null=True)
+
+    num = models.CharField(max_length=200)
     start_index = models.IntegerField()
     end_index = models.IntegerField()
-    num_injured = models.IntegerField()
+
+    casualty_type = models.CharField(
+        max_length=100,
+        choices=tuple(
+            [(casualty.value, casualty.value) for casualty in CasualtyType]))
 
     class Meta:
-        db_table = 'injured_entity'
+        db_table = 'casualty_entity'
+
+    def get_dict(self):
+        result = {
+            'content': self.num,
+            'start_index': self.start_index,
+            'end_index': self.end_index,
+            'type': self.casualty_type
+        }
+        if (self.victim_entity != None):
+            result['victim'] = self.victim_entity.get_dict()
+        return result
 
 
 class PerpetratorEntity(models.Model):
@@ -119,3 +173,10 @@ class PerpetratorEntity(models.Model):
 
     class Meta:
         db_table = 'perpetrator_entity'
+
+    def get_dict(self):
+        return {
+            'content': self.perpetrator,
+            'start_index': self.start_index,
+            'end_index': self.end_index
+        }
