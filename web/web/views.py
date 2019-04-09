@@ -59,7 +59,7 @@ def label_article(request, idx=0):
         store_label(results, article)
 
     labels = get_labels(article)
-
+    print(labels)
     return render(
         request, 'label_article.html', {
             'idx': idx,

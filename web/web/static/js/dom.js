@@ -26,37 +26,139 @@
 const COLORS = [
     '#10ff00', //green
     '#0080ff', //blue
-    '#ff0000', //red
-    '#ffb732', //orange
     '#f8ff00', //yellow
     '#00ffd9',  //light green/blue
+    '#ff0000', //red
+    '#A9A9A9', //grey
     '#FF00FF', //fuschia
-    '#A9A9A9', //grey    
-    '#a41a1a', //brown    
-];
-
-const LABELS = ["date", "perpetrator", "killed", "injured", "country", "region"];
-const MAX_LABELS = COLORS.length;
+    '#ffb732', //orange
+    '#a41a1a'];
+const CASUALTY_TYPE = {INJURY: "INJURY", DEATH: "DEATH"};
+const LABELS = ["date", "perpetrator", "country", "region"];
 const LABEL_ATTRIBUTE = 'label';
 const CONTENT_ID = 'content';
-var results = {'article_url': window.page_data.article_url};
-loadedLabels = JSON.parse(window.page_data.loadedLabels);
+const DEATH_REGEX = /death(\d+)/;
+const INJURY_REGEX = /injury(\d+)/;
+
+//set IDs for death and injuries
+var death_idx = 0, injury_idx = 100, colors_idx = 0;
+var labelToColor = {};
+
+//get data from html
+var article_url = window.page_data.article_url;
+var entities = JSON.parse(window.page_data.loadedEntities);
+
+//create labels from loaded entities
+var entityLabels = createEntityLabels(entities);
+highlightLabels(entityLabels);
+
+//select type checkbox
 selectType(JSON.parse(window.page_data.articleType));
 
-//assign color to each label
-var labelToColor = {};
-window.labelToColor = labelToColor;
-//labelToColor = window.labelToColor
-LABELS.forEach((label, i) => {
-    labelToColor[label] = COLORS[i];
-});
+//*************** helper functions ***************************
+function getOrNull(object, key){
+    return object.hasOwnProperty(key) ? object[key] : null;
+}
 
-loadLabels(loadedLabels)
+function mergeDict(a, b){
+    var c = {};
+    for (var i in a) {
+      c[i] = a[i];
+    }
+    for (var j in b) {
+      c[j] = b[j];
+    }
+    return c;
+};
 
-function highlightRange(start_index, end_index, label){
-    color = labelToColor[label];
+function extractIdx(label){
+    var idxStr, idx;
+    if(DEATH_REGEX.test(label)){
+        idxStr = label.match(DEATH_REGEX)[1];
+        return parseInt(idxStr);
+    }else if(INJURY_REGEX.test(label)){
+        idxStr = label.match(INJURY_REGEX)[1];
+        return parseInt(idxStr);
+    }
+
+    return null;
+}
+//*************** helper functions ***************************
+
+//turn casualty entities into labels for highlighting where key is <casualty_type><idx>
+function createCasualtyLabels(casualtyEntities, casualtyStr){
+    casualties = {};
+    for(var i = 0; i < casualtyEntities.length; i++){
+        casualty = casualtyEntities[i];
+        var color = getColor();
+        if(casualty['casualty_type'] == CASUALTY_TYPE.INJURY){
+            idx = injury_idx;
+            injury_idx += 1;
+            casualtySTr = 'injury'
+        }else{
+            idx = death_idx;
+            death_idx += 1;
+            casualtyStr = 'death';
+        }
+        casualtyLabel = `${casualtyStr}${idx}`;
+        victimLabel =  `victim${idx}`;
+
+        // Assign same color to casualty and victim label
+        labelToColor[casualtyLabel] = labelToColor[victimLabel] = color;
+
+        casualties[casualtyLabel] = {start_index: casualty['start_index'], start_index: casualty['end_index'], casualty_type: casualty['casualty_type'], color:color};
+        victim = getOrNull(casualty, 'victim');
+        if(victim != null){
+            victim = {start_index:victim['start_index'], end_index:victim['end_index'], color:color};
+        }
+
+        casualties[victimLabel] = victim;
+    }
+
+    return casualties;
+}
+
+function getColor(){
+    return COLORS[(colors_idx++) % COLORS.length];
+}
+
+//turn entities into labels
+function createEntityLabels(entities){
+    
+    var entityLabels = {}
+    death_idx = 0; injury_idx = 100;
+    for(const key of Object.keys(entities)){
+        var entityLabel = {};
+        var entity = entities[key];
+        if(entity === null || entity == undefined){
+            entity = {start_index: null, end_index: null};
+        }
+
+        if(key == 'deaths'){
+            entityLabel = createCasualtyLabels(entity);
+            death_idx += entity.length;
+        }else if(key == 'injuries'){
+            entityLabel = createCasualtyLabels(entity);
+            injury_idx += entity.length;
+        }else{
+            var start_index = entity['start_index'], end_index = entity['end_index'];
+            var color = getColor();
+
+            entityLabel = {[key]:{start_index: entity['start_index'], end_index: entity['end_index'], color: color}}
+            labelToColor[key] = color;
+        }
+
+        entityLabels = mergeDict(entityLabels, entityLabel);
+    }
+
+    return entityLabels;
+}
+
+//given start and end indexes, highlight appropriate label
+function highlightRange(start_index, end_index, label, color){
     var content = document.getElementById("content");
     var str = content.innerHTML;
+    if(start_index == null || end_index == null) return;
 
     highlightContent = str.slice(start_index, end_index + 1);
     str = str.slice(0, start_index) + `<span style="background-color: ${color}; display: inline;" id= ${label}>` + highlightContent + '</span>' + str.slice(end_index + 1);
@@ -64,30 +166,19 @@ function highlightRange(start_index, end_index, label){
     return highlightContent;
 }
 
-function loadLabels(labels) {
-    var foundLabels = Object.getOwnPropertyNames(loadedLabels)
-    foundLabels.sort(function(a,b) {return (loadedLabels[a]['start_index'] > loadedLabels[b]['start_index']) ? -1 : ((loadedLabels[b]['start_index'] > loadedLabels[a]['start_index']) ? 1 : 0);} );
-    for (var i = 0; i < foundLabels.length; i++) {
-        var label = foundLabels[i];
-        var loadedLabel = loadedLabels[label];
-        
-        if(loadedLabel === null || loadedLabel == undefined)
-            continue;
 
-        start_index = loadedLabel['start_index']
-        end_index = loadedLabel['end_index']
-        if(start_index == null || end_index == null) continue;
+function highlightLabels(entityLabels) {
+    labels = Object.getOwnPropertyNames(entityLabels);
+    labels.sort(function(a,b) {
+        return entityLabels[a]['start_index'] > entityLabels[b]['start_index'] ? -1 : (entityLabels[b]['start_index'] > entityLabels[a]['start_index'] ? 1 : 0);
+    });
 
-        content = highlightRange(loadedLabel['start_index'], loadedLabel['end_index'], label);
-        var tagInfo = {
-            'content':content,
-            'start_ixndex':start_index, 
-            'end_index':end_index
-        };
-
-        results[label] = tagInfo;
+    for(const label of Object.keys(entityLabels)){
+        entityLabel = entityLabels[label];
+        highlightRange(entityLabel['start_index'], entityLabel['end_index'], label, entityLabel['color']);    
     }
 }
+
 function getSelectedString() {
     windowSelection = window.getSelection();
     if (windowSelection) {
@@ -101,17 +192,16 @@ function getSelectedString() {
 function removeHighlight(label){
     style = document.getElementById(label);
     if(style !== null){
-        delete results[label]
+        delete entityLabels[label];
         $(style).replaceWith(function() { return this.innerHTML; });
     }
-
 }
 
-function highlightSelection(event) {
+// Highlights current selection in html
+function highlightSelection(event, color) {
     var label = event.target.getAttribute(LABEL_ATTRIBUTE);
     var range = window.getSelection().getRangeAt(0);
     var highlight = document.createElement("span");
-    var color = labelToColor[label];
 
     removeHighlight(label);
 
@@ -122,14 +212,14 @@ function highlightSelection(event) {
     highlight.setAttribute(
         "id",
         label
-    )
+    );
     range.surroundContents(highlight);
 }
 
 function clearHighlights(){
     for (var i = 0; i < LABELS.length; i++) {
         var label = LABELS[i];
-        removeHighlight(label)
+        removeHighlight(label);
     }
 }
 
@@ -150,18 +240,68 @@ function selectType(type){
     checkbox.checked = true;
 }
 
-function labelSelection(event) {
+function createButton(label, color, div){
+    var button = document.createElement("button");
+    var divider = document.createElement("div");
+
+    button.setAttribute("style", `background-color: ${color}; color: black; font-weight: bold;`);
+    button.setAttribute("class", "btn");
+    button.setAttribute(LABEL_ATTRIBUTE, label);
+    button.innerHTML = label;
+    button.addEventListener("click", function(){
+        labelSelection(event, color);
+    });
+
+    divider.setAttribute("style", "width:15px;height:auto;display:inline-block; margin-top:20px; margin-bottom:20px;");
+    div.appendChild(button);
+    div.appendChild(divider);
+    labelToColor[label] = color;
+}
+
+function createKilledButtons(color, div){
+    casualtyLabel = `death${death_idx}`;
+    victimLabel = `victim${death_idx}`; 
+    createButton(casualtyLabel, color, div);
+    createButton(victimLabel, color, div);
+    death_idx += 1;
+
+    return [casualtyLabel, victimLabel];
+}
+
+function createInjuryButtons(color, div){
+    casualtyLabel = `injury${injury_idx}`;
+    victimLabel = `victim${injury_idx}`; 
+    createButton(casualtyLabel, color, div);
+    createButton(victimLabel, color, div);
+    injury_idx += 1;
+
+    return [casualtyLabel, victimLabel];
+}
+
+function labelSelection(event, color) {
+    var label = event.target.getAttribute(LABEL_ATTRIBUTE);
+    var casualtyLabel = null, victimLabel = null;
+
+    if(DEATH_REGEX.test(label) && extractIdx(label) == death_idx - 1){
+        [casualtyLabel, victimLabel] = createKilledButtons(getColor(), div);
+    }else if(INJURY_REGEX.test(label)&& extractIdx(label) == injury_idx - 1){
+        [casualtyLabel, victimLabel] = createInjuryButtons(getColor(), div);
+    }
+
+    if(casualtyLabel != null && victimLabel != null){
+        labelToColor[casualtyLabel] = color;
+        labelToColor[victimLabel] = color;
+    }
+
+    //TODO: add handling of case where victim button is pressed
     selectedString = getSelectedString();
     if (selectedString === "") {
+        removeHighlight(label);
+        entityLabels[label] = null;
         return;
     }
 
-    var label = event.target.getAttribute(LABEL_ATTRIBUTE);
-
-    highlightSelection(event);
-    if (!results[label]) {
-        results[label] = [];
-    }
+    highlightSelection(event, color);
 
     if (window.getSelection) {
         var selection = window.getSelection();
@@ -176,41 +316,31 @@ function labelSelection(event) {
         precedingRange.setEnd(selectedRange.startContainer, selectedRange.startOffset);
 
         var textPrecedingSelection = precedingRange.toString();
-        console.log(textPrecedingSelection);
         var startIndex = textPrecedingSelection.length;
         var endIndex = startIndex + selectedString.length - 1;
     }
-
-    var tagInfo = {
-        'content':selectedString,
-        'start_index':startIndex, 
-        'end_index':endIndex
-    };
-
-    results[label] = tagInfo;
 }
 
 var navbar = document.getElementById("navbar");
+var div = document.getElementById("casualty");
 
-for (var i = 0; i < LABELS.length; i++) {
-    var label = LABELS[i];
-    var color = labelToColor[label];
-
-    var button = document.createElement("button");
-    button.setAttribute("style", `background-color: ${color}; color: black; font-weight: bold;`);
-    button.setAttribute("class", "btn");
-    button.setAttribute(LABEL_ATTRIBUTE, label);
-    button.innerHTML = label;
-    navbar.appendChild(button);
-    var divider = document.createElement("div");
-    divider.setAttribute("style", "width:15px;height:auto;display:inline-block; margin-top:20px; margin-bottom:20px;");
-    navbar.appendChild(divider);
-
-    button.addEventListener("click", labelSelection);
+// Create buttons from entityLabels
+for(const label of Object.keys(entityLabels)){
+    var color = entityLabels[label]['color'];
+    // Create button for current label
+    if(DEATH_REGEX.test(label) || INJURY_REGEX.test(label)){
+        createButton(label, color, div);
+        continue;
+    }
+    
+    createButton(label, color, navbar);
 }
 
-var button = document.createElement("button");
+createKilledButtons(getColor(), div);
+createInjuryButtons(getColor(), div);
 
+// Create save button
+var button = document.createElement("button");
 button.innerHTML = "Save";
 button.setAttribute("style", "margin-top: 20px; margin-bottom: 20px;");
 navbar.appendChild(document.createElement("br"));

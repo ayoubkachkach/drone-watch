@@ -113,6 +113,20 @@ class LocationEntity(models.Model):
             }
         }
 
+    def get_country_dict(self):
+        return {
+            'start_index': self.country_start_index,
+            'end_index': self.country_end_index,
+            'content': self.country
+        }
+
+    def get_region_dict(self):
+        return {
+            'start_index': self.region_start_index,
+            'end_index': self.region_end_index,
+            'content': self.region
+        }
+
 
 class CasualtyEntity(models.Model):
     seed = models.ForeignKey(

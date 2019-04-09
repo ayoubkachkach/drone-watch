@@ -7,6 +7,7 @@ from web.models import LocationEntity
 from web.models import PerpetratorEntity
 from web.models import Types
 from web.models import VictimEntity
+from web.models import CasualtyType
 
 
 def get_object_or_None(klass, *args, **kwargs):
@@ -25,6 +26,7 @@ def get_object_or_None(klass, *args, **kwargs):
         return queryset.get(*args, **kwargs)
     except queryset.model.DoesNotExist:
         return None
+
 
 def store_label(results, article):
     date_entity = results.get('date', None)
@@ -48,7 +50,7 @@ def store_label(results, article):
     article.is_ground_truth = True
     article.article_type = article_type
 
-    t2d = text2digits.Text2Digits()
+    # t2d = text2digits.Text2Digits()
 
     if (article_type == Types.STRIKE.value):
         article.classification_score = 1
@@ -91,15 +93,22 @@ def store_label(results, article):
         #location.save()
     if (killed_entity):
         if (killed_entity['content'].lower() == 'a'):
-            num_killed = 1
-        num_killed = t2d.convert(killed_entity['content'])
-        killed, _ = KilledEntity.objects.update_or_create(
+            killed_entity['content'] = '1'
+        killed, _ = CasualtyEntity.objects.update_or_create(
             seed=article,
             defaults={
                 'seed': article,
                 'start_index': int(killed_entity['start_index']),
                 'end_index': int(killed_entity['end_index']),
-                'num_killed': int(num_killed)
+                'num': killed_entity['content']
+            })
+        VictimEntity().objects.update_or_create(
+            seed=killed,
+            defaults={
+                'seed': article,
+                'start_index': int(killed_entity['start_index']),
+                'end_index': int(killed_entity['end_index']),
+                'num': killed_entity['content']
             })
         #killed.save()
     if (injured_entity):
@@ -138,38 +147,28 @@ def get_related_object(article, field_name):
 # def make_label_dict()
 
 
-def make_labels_dict(article):
-    entity_labels = {}
-    entity_labels['date'] = get_related_object(article, 'date_entity')
-    entity_labels['location'] = get_related_object(article, 'location_entity')
-    entity_labels['killed'] = get_related_object(article, 'killed_entities')
-    entity_labels['injured'] = get_related_object(article, 'injured_entities')
-    entity_labels['perpetrator'] = get_related_object(article,
-                                                      'perpetrator_entity')
-    if (entity_labels['date']):
-        entity_labels['date'] = entity_labels['date'].__dict__
+def get_labels(article):
+    labels = {}
 
-    if (entity_labels['location']):
-        entity_labels['location'] = entity_labels['location'].__dict__
+    date = get_object_or_None(DateEntity, seed=article)
+    location = get_object_or_None(LocationEntity, seed=article)
+    perpetrator = get_object_or_None(PerpetratorEntity, seed=article)
 
-    if (entity_labels['killed']):
-        entity_labels['killed'] = killed_entity.entity_labels['killed'].all
+    labels['date'] = date and date.get_dict()
+    labels['country'] = location and location.get_country_dict()
+    labels['region'] = location and location.get_region_dict()
+    labels['perpetrator'] = perpetrator and perpetrator.get_dict()
 
-    if (entity_labels['injured']):
-        entity_labels['injured'] = entity_labels['injured'].__dict__
+    casualties = CasualtyEntity.objects.filter(seed=article)
+    labels['deaths'] = [
+        casualty.get_dict()
+        for casualty in casualties
+        if casualty.casualty_type == CasualtyType.DEATH.value
+    ]
+    labels['injuries'] = [
+        casualty.get_dict()
+        for casualty in casualties
+        if casualty.casualty_type == CasualtyType.INJURY.value
+    ]
 
-    if (entity_labels['perpetrator']):
-        entity_labels['perpetrator'] = entity_labels['perpetrator'].__dict__
-
-    entity_labels = {
-        key: val for key, val in entity_labels.items() if val is not None
-    }
-
-    key_to_remove = '_state'
-    for key in entity_labels.keys():
-        if entity_labels[key] and key_to_remove in entity_labels[key]:
-            if (key == 'date'):
-                del entity_labels['date']['date']
-            del entity_labels[key][key_to_remove]
-
-    return entity_labels
+    return labels

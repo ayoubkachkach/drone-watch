@@ -36,6 +36,7 @@
         <input id="MANY_STRIKES" type="radio" name="btn" value="MANY_STRIKES"><span class="inline">Many strikes</span>
         <input id="EDITORIAL" type="radio" name="btn" value="EDITORIAL"><span class="inline">Editorial</span>
       </form>
+      <div id="casualty"></div>
     </div>
   </div>
   </header>
@@ -49,7 +50,7 @@
     window.page_data = {
       url: '{% url 'label_article' idx %}',
       article_url: '{{ article_url }}',
-      loadedLabels: '{{ loadedLabels|safe }}',
+      loadedEntities: '{{ loadedLabels|safe }}',
       articleType: '{{ articleType|safe }}'
     };
   </script>
