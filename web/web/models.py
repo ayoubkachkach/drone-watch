@@ -138,7 +138,7 @@ class CasualtyEntity(models.Model):
 
     casualty_type = models.CharField(
         max_length=100,
-        choices=tuple(
+        choices= tuple(
             [(casualty.value, casualty.value) for casualty in CasualtyType]))
 
     class Meta:
@@ -152,7 +152,7 @@ class CasualtyEntity(models.Model):
             'type': self.casualty_type
         }
         if (self.victim != None):
-            result['victim'] = self.victim_entity.get_dict()
+            result['victim'] = self.victim.get_dict()
 
         return result
 

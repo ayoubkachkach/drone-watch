@@ -51,15 +51,16 @@ def label_article(request, idx=0):
         })
 
     if (request.method == 'POST'):
-        results = request.POST.getlist('results[]')
-        if (not results):
+        entities = request.POST.getlist('entities[]')
+        if (not entities):
             pass
 
-        results = json.loads(request.body)
-        store_label(results, article)
+        entities = json.loads(request.body)
+        print(entities)
+        store_label(entities, article)
 
     labels = get_labels(article)
-    print(labels)
+    #print(labels)
     return render(
         request, 'label_article.html', {
             'idx': idx,

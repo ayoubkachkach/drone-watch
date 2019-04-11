@@ -39,6 +39,7 @@ const LABEL_ATTRIBUTE = 'label';
 const CONTENT_ID = 'content';
 const DEATH_REGEX = /death(\d+)/;
 const INJURY_REGEX = /injury(\d+)/;
+const VICTIM_REGEX = /victim(\d+)/;
 
 //set IDs for death and injuries
 var death_idx = 0, injury_idx = 100, colors_idx = 0;
@@ -49,7 +50,7 @@ var article_url = window.page_data.article_url;
 var entities = JSON.parse(window.page_data.loadedEntities);
 
 //create labels from loaded entities
-var entityLabels = createEntityLabels(entities);
+var entityLabels = createLabelsFromEntities(entities);
 highlightLabels(entityLabels);
 
 //select type checkbox
@@ -69,7 +70,7 @@ function mergeDict(a, b){
       c[j] = b[j];
     }
     return c;
-};
+}
 
 function extractIdx(label){
     var idxStr, idx;
@@ -83,33 +84,41 @@ function extractIdx(label){
 
     return null;
 }
+
+function shallowCopy(obj){
+    return JSON.parse(JSON.stringify(obj));
+}
+
+function isValidLabel(label){
+    return (label != null && label['start_index'] != null && label['end_index'] != null);
+}
 //*************** helper functions ***************************
 
 //turn casualty entities into labels for highlighting where key is <casualty_type><idx>
-function createCasualtyLabels(casualtyEntities, casualtyStr){
+function createCasualtyLabels(casualtyEntities){
     casualties = {};
     for(var i = 0; i < casualtyEntities.length; i++){
         casualty = casualtyEntities[i];
         var color = getColor();
-        if(casualty['casualty_type'] == CASUALTY_TYPE.INJURY){
+        if(casualty['type'] == CASUALTY_TYPE.INJURY){
             idx = injury_idx;
             injury_idx += 1;
-            casualtySTr = 'injury'
+            casualtyStr = 'injury'
         }else{
             idx = death_idx;
             death_idx += 1;
             casualtyStr = 'death';
         }
+
         casualtyLabel = `${casualtyStr}${idx}`;
         victimLabel =  `victim${idx}`;
-
         // Assign same color to casualty and victim label
         labelToColor[casualtyLabel] = labelToColor[victimLabel] = color;
 
-        casualties[casualtyLabel] = {start_index: casualty['start_index'], start_index: casualty['end_index'], casualty_type: casualty['casualty_type'], color:color};
+        casualties[casualtyLabel] = {start_index: casualty['start_index'], end_index: casualty['end_index'], casualty_type: casualty['type'], color:color, content: casualty['content']};
         victim = getOrNull(casualty, 'victim');
         if(victim != null){
-            victim = {start_index:victim['start_index'], end_index:victim['end_index'], color:color};
+            victim = {start_index:victim['start_index'], end_index:victim['end_index'], color:color, casualty_type: casualty['type'], content: victim['content']};
         }
 
         casualties[victimLabel] = victim;
@@ -123,10 +132,9 @@ function getColor(){
 }
 
 //turn entities into labels
-function createEntityLabels(entities){
-    
+function createLabelsFromEntities(entities){
     var entityLabels = {}
-    death_idx = 0; injury_idx = 100;
+    var death_idx = 0, injury_idx = 100;
     for(const key of Object.keys(entities)){
         var entityLabel = {};
         var entity = entities[key];
@@ -144,7 +152,7 @@ function createEntityLabels(entities){
             var start_index = entity['start_index'], end_index = entity['end_index'];
             var color = getColor();
 
-            entityLabel = {[key]:{start_index: entity['start_index'], end_index: entity['end_index'], color: color}}
+            entityLabel = {[key]:{start_index: entity['start_index'], end_index: entity['end_index'], content:entity['content'], color: color}}
             labelToColor[key] = color;
         }
 
@@ -152,6 +160,36 @@ function createEntityLabels(entities){
     }
 
     return entityLabels;
+}
+
+function createEntitiesFromLabels(labels){
+    entities = {'date':null,'country':null,'region':null, 'perpetrator':null, 'deaths':[], 'injuries':[]}
+    deathLabels = Object.keys(labels).filter(function (label) { return DEATH_REGEX.test(label); });
+    injuryLabels = Object.keys(labels).filter(function (label) { return INJURY_REGEX.test(label); });
+    otherLabels = Object.keys(labels).filter(function (label) { return !(INJURY_REGEX.test(label) || DEATH_REGEX.test(label) || VICTIM_REGEX.test(label)); })
+
+    for(var label of deathLabels){
+        var idx = extractIdx(label);
+        var deathEntity = shallowCopy(labels[label]);
+        deathEntity['victim'] = shallowCopy(getOrNull(labels, `victim${idx}`));
+        entities.deaths.push(deathEntity);
+    }
+
+    for(var label of injuryLabels){
+        var idx = extractIdx(label);
+        var injuryEntity = shallowCopy(labels[label]);
+        injuryEntity['victim'] = shallowCopy(getOrNull(labels, `victim${idx}`));
+        entities.injuries.push(injuryEntity);
+    }
+
+    for(var label of otherLabels){
+        if(!isValidLabel(labels[label]))
+            continue;
+
+        entities[label] = shallowCopy(labels[label]);
+    }
+
+    return entities;
 }
 
 //given start and end indexes, highlight appropriate label
@@ -173,7 +211,7 @@ function highlightLabels(entityLabels) {
         return entityLabels[a]['start_index'] > entityLabels[b]['start_index'] ? -1 : (entityLabels[b]['start_index'] > entityLabels[a]['start_index'] ? 1 : 0);
     });
 
-    for(const label of Object.keys(entityLabels)){
+    for(const label of labels){
         entityLabel = entityLabels[label];
         highlightRange(entityLabel['start_index'], entityLabel['end_index'], label, entityLabel['color']);    
     }
@@ -217,8 +255,7 @@ function highlightSelection(event, color) {
 }
 
 function clearHighlights(){
-    for (var i = 0; i < LABELS.length; i++) {
-        var label = LABELS[i];
+    for(const label of Object.keys(entityLabels)){
         removeHighlight(label);
     }
 }
@@ -319,6 +356,8 @@ function labelSelection(event, color) {
         var startIndex = textPrecedingSelection.length;
         var endIndex = startIndex + selectedString.length - 1;
     }
+
+    entityLabels[label] = {start_index: startIndex, end_index: endIndex, content: selectedString, color: labelToColor[label]}
 }
 
 var navbar = document.getElementById("navbar");
@@ -328,7 +367,7 @@ var div = document.getElementById("casualty");
 for(const label of Object.keys(entityLabels)){
     var color = entityLabels[label]['color'];
     // Create button for current label
-    if(DEATH_REGEX.test(label) || INJURY_REGEX.test(label)){
+    if(DEATH_REGEX.test(label) || INJURY_REGEX.test(label) || VICTIM_REGEX.test(label)){
         createButton(label, color, div);
         continue;
     }
@@ -351,11 +390,12 @@ button.addEventListener("click", function(event) {
     if(buttonValue === ""){
         buttonValue = "NOT_DRONE";
     }
-    results["article_type"] = buttonValue;
+    entities = createEntitiesFromLabels(entityLabels);
+    entities["article_type"] = buttonValue;
     $.ajax({
       url: window.page_data.url,
       type: 'POST',
-      data: JSON.stringify(results),
+      data: JSON.stringify(entities),
     });
 });
 

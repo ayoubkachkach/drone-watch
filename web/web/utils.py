@@ -1,13 +1,15 @@
+import dateparser
+
 from django.shortcuts import _get_queryset
 from text2digits import text2digits
 from web.models import Article
 from web.models import CasualtyEntity
+from web.models import CasualtyType
 from web.models import DateEntity
 from web.models import LocationEntity
 from web.models import PerpetratorEntity
 from web.models import Types
 from web.models import VictimEntity
-from web.models import CasualtyType
 
 
 def get_object_or_None(klass, *args, **kwargs):
@@ -28,17 +30,22 @@ def get_object_or_None(klass, *args, **kwargs):
         return None
 
 
-def store_label(results, article):
-    date_entity = results.get('date', None)
-    country_entity = results.get('country', None)
-    region_entity = results.get('region', None)
-    killed_entity = results.get('killed', None)
-    injured_entity = results.get('injured', None)
-    perpetrator_entity = results.get('perpetrator', None)
-    article_type = results.get('article_type', None)
+def store_label(entities, article):
+    date_entity = entities.get('date', None)
+    country_entity = entities.get('country', None)
+    region_entity = entities.get('region', None)
+    perpetrator_entity = entities.get('perpetrator', None)
+    article_type = entities.get('article_type', None)
+
+    deaths = entities.get('deaths', [])
+    injuries = entities.get('injuries', [])
 
     DateEntity.objects.filter(seed=article).delete()
     LocationEntity.objects.filter(seed=article).delete()
+
+    print("HEEERE")
+    print(CasualtyEntity._meta.get_fields())
+
     CasualtyEntity.objects.filter(seed=article).delete()
     PerpetratorEntity.objects.filter(seed=article).delete()
 
@@ -59,15 +66,19 @@ def store_label(results, article):
 
     if (date_entity):
         date_str = date_entity['content']
-        date = DateEntity.objects.update_or_create(
+        # If date_published is None, set relative_base for date parsing to date_scraped
+        relative_base = article.date_published or article.date_scraped
+        
+        date, _ = DateEntity.objects.update_or_create(
             seed=article,
             defaults={
                 'seed': article,
                 'start_index': int(date_entity['start_index']),
                 'end_index': int(date_entity['end_index']),
                 'date_str': date_str,
-                'date': dateparser.parse(date_str)
+                'date': dateparser.parse(date_str, settings={'RELATIVE_BASE': relative_base})
             })
+        date.save()
 
         #date.save()
     if (country_entity):
@@ -79,6 +90,7 @@ def store_label(results, article):
                 'country_end_index': int(country_entity['end_index']),
                 'country': country_entity['content'],
             })
+        location.save()
 
     if (region_entity):
         location, _ = LocationEntity.objects.update_or_create(
@@ -89,39 +101,69 @@ def store_label(results, article):
                 'region_end_index': int(region_entity['end_index']),
                 'region': region_entity['content']
             })
+        location.save()
 
-        #location.save()
-    if (killed_entity):
-        if (killed_entity['content'].lower() == 'a'):
-            killed_entity['content'] = '1'
+    for death in deaths:
+
+        if(not death):
+            continue
+
+        print("HERE")
+        if (death['content'].lower() == 'a'):
+            death['content'] = '1'
         killed, _ = CasualtyEntity.objects.update_or_create(
             seed=article,
             defaults={
                 'seed': article,
-                'start_index': int(killed_entity['start_index']),
-                'end_index': int(killed_entity['end_index']),
-                'num': killed_entity['content']
+                'start_index': int(death['start_index']),
+                'end_index': int(death['end_index']),
+                'num': death['content'],
+                'casualty_type': CasualtyType.DEATH.value
             })
-        VictimEntity().objects.update_or_create(
+        killed.save()
+
+        victim = death['victim']
+        if(not victim):
+            continue
+
+        victim_entity, _ = VictimEntity.objects.update_or_create(
             seed=killed,
             defaults={
-                'seed': article,
-                'start_index': int(killed_entity['start_index']),
-                'end_index': int(killed_entity['end_index']),
-                'num': killed_entity['content']
+                'seed': killed,
+                'start_index': int(victim['start_index']),
+                'end_index': int(victim['end_index']),
+                'victim': victim['content'],
             })
-        #killed.save()
-    if (injured_entity):
-        num_injured = t2d.convert(injured_entity['content'])
-        injured, _ = InjuredEntity.objects.update_or_create(
+        victim_entity.save()
+
+    for injury in injuries:
+        if (injury['content'].lower() == 'a'):
+            injury['content'] = '1'
+        injured, _ = CasualtyEntity.objects.update_or_create(
             seed=article,
             defaults={
                 'seed': article,
-                'start_index': int(injured_entity['start_index']),
-                'end_index': int(injured_entity['end_index']),
-                'num_injured': int(num_injured)
+                'start_index': int(injury['start_index']),
+                'end_index': int(injury['end_index']),
+                'num': injury['content'],
+                'casualty_type': CasualtyType.INJURY.value
             })
-        #injured.save()
+        injured.save()
+
+        victim = injury['victim']
+        if(not victim):
+            continue
+
+        victim_entity, _ = VictimEntity.objects.update_or_create(
+            seed=injured,
+            defaults={
+                'seed': injured,
+                'start_index': int(victim['start_index']),
+                'end_index': int(victim['end_index']),
+                'victim': victim['content']
+            })
+        victim_entity.save()
+
     if (perpetrator_entity):
         perpetrator, _ = PerpetratorEntity.objects.update_or_create(
             seed=article,
@@ -131,6 +173,8 @@ def store_label(results, article):
                 'end_index': int(perpetrator_entity['end_index']),
                 'perpetrator': perpetrator_entity['content']
             })
+        perpetrator.save()
+
     article.save()
 
 
