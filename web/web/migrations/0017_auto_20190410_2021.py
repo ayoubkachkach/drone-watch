@@ -32,7 +32,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='victimentity',
             name='seed',
-            field=models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='victim', to='web.CasualtyEntity'),
+            field=models.OneToOneField(
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='victim',
+                to='web.CasualtyEntity'),
         ),
         migrations.AddField(
             model_name='victimentity',

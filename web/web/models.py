@@ -138,7 +138,7 @@ class CasualtyEntity(models.Model):
 
     casualty_type = models.CharField(
         max_length=100,
-        choices= tuple(
+        choices=tuple(
             [(casualty.value, casualty.value) for casualty in CasualtyType]))
 
     class Meta:
@@ -151,7 +151,13 @@ class CasualtyEntity(models.Model):
             'end_index': self.end_index,
             'type': self.casualty_type
         }
-        if (self.victim != None):
+
+        try:
+            victim = self.victim
+        except CasualtyEntity.victim.RelatedObjectDoesNotExist:
+            victim = None
+        
+        if (victim):
             result['victim'] = self.victim.get_dict()
 
         return result

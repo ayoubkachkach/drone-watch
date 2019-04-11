@@ -60,6 +60,7 @@ def label_article(request, idx=0):
         store_label(entities, article)
 
     labels = get_labels(article)
+    print(labels)
     #print(labels)
     return render(
         request, 'label_article.html', {

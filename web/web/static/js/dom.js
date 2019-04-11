@@ -117,7 +117,9 @@ function createCasualtyLabels(casualtyEntities){
 
         casualties[casualtyLabel] = {start_index: casualty['start_index'], end_index: casualty['end_index'], casualty_type: casualty['type'], color:color, content: casualty['content']};
         victim = getOrNull(casualty, 'victim');
-        if(victim != null){
+        if(victim == null)
+            victim = {start_index: null, end_index: null, color: color};
+        else{
             victim = {start_index:victim['start_index'], end_index:victim['end_index'], color:color, casualty_type: casualty['type'], content: victim['content']};
         }
 

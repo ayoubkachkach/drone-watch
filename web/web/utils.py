@@ -68,15 +68,21 @@ def store_label(entities, article):
         date_str = date_entity['content']
         # If date_published is None, set relative_base for date parsing to date_scraped
         relative_base = article.date_published or article.date_scraped
-        
+
         date, _ = DateEntity.objects.update_or_create(
             seed=article,
             defaults={
-                'seed': article,
-                'start_index': int(date_entity['start_index']),
-                'end_index': int(date_entity['end_index']),
-                'date_str': date_str,
-                'date': dateparser.parse(date_str, settings={'RELATIVE_BASE': relative_base})
+                'seed':
+                article,
+                'start_index':
+                int(date_entity['start_index']),
+                'end_index':
+                int(date_entity['end_index']),
+                'date_str':
+                date_str,
+                'date':
+                dateparser.parse(
+                    date_str, settings={'RELATIVE_BASE': relative_base})
             })
         date.save()
 
@@ -105,25 +111,22 @@ def store_label(entities, article):
 
     for death in deaths:
 
-        if(not death):
+        if (not death):
             continue
 
         print("HERE")
         if (death['content'].lower() == 'a'):
             death['content'] = '1'
-        killed, _ = CasualtyEntity.objects.update_or_create(
+        killed = CasualtyEntity(
             seed=article,
-            defaults={
-                'seed': article,
-                'start_index': int(death['start_index']),
-                'end_index': int(death['end_index']),
-                'num': death['content'],
-                'casualty_type': CasualtyType.DEATH.value
-            })
+            start_index=int(death['start_index']),
+            end_index=int(death['end_index']),
+            num=death['content'],
+            casualty_type=CasualtyType.DEATH.value)
         killed.save()
 
         victim = death['victim']
-        if(not victim):
+        if (not victim):
             continue
 
         victim_entity, _ = VictimEntity.objects.update_or_create(
@@ -139,19 +142,16 @@ def store_label(entities, article):
     for injury in injuries:
         if (injury['content'].lower() == 'a'):
             injury['content'] = '1'
-        injured, _ = CasualtyEntity.objects.update_or_create(
+        injured = CasualtyEntity(
             seed=article,
-            defaults={
-                'seed': article,
-                'start_index': int(injury['start_index']),
-                'end_index': int(injury['end_index']),
-                'num': injury['content'],
-                'casualty_type': CasualtyType.INJURY.value
-            })
+            start_index=int(injury['start_index']),
+            end_index=int(injury['end_index']),
+            num=injury['content'],
+            casualty_type=CasualtyType.INJURY.value)
         injured.save()
 
         victim = injury['victim']
-        if(not victim):
+        if (not victim):
             continue
 
         victim_entity, _ = VictimEntity.objects.update_or_create(
