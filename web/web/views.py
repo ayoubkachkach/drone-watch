@@ -2,6 +2,7 @@ import dateparser
 
 import json
 import simplejson
+import unicodedata
 
 from django.http import HttpResponse
 from django.shortcuts import redirect
@@ -50,23 +51,23 @@ def label_article(request, idx=0):
             'No matching article found for url: {}'.format(url)
         })
 
+    # Clean article body from any special characters
+    article.body = unicodedata.normalize("NFKD", article.body)
+
     if (request.method == 'POST'):
         entities = request.POST.getlist('entities[]')
         if (not entities):
             pass
 
         entities = json.loads(request.body)
-        print(entities)
         store_label(entities, article)
 
     labels = get_labels(article)
-    print(labels)
-    #print(labels)
     return render(
         request, 'label_article.html', {
             'idx': idx,
             'article': article,
-            'next': idx + 1,
+            'next': min(max_idx, idx + 1),
             'prev': max(0, idx - 1),
             'article_url': url,
             'loadedLabels': simplejson.dumps(labels),

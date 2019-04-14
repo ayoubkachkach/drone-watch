@@ -2,3 +2,11 @@
 40557: mentions initial death count (key leader and companions) detailed count later in article
 40578: Good example in report as almost all info are mentioned in one sentence
 40935: Good example of article that talks about deaths but not drone
+40974: Mentions civilian casualties but no numbers given
+40976: First words of the article talk about one victim out of 12 killed.
+40979: Civilian casualties mentioned in the end ... also don't understand article well. (!)
+40982: ISAF denies report of civilians killed. Also might need co-reference on this one particularly with the province (1st sentence) but also with injured.
+40983: Complicated article structure (!)
+40987: Title mentions it's a drone strike but not the article body
+40989: Complicated article structure (!)
+41015: Civ casualties hidden inside article (!)

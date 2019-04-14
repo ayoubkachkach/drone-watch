@@ -110,13 +110,12 @@ def store_label(entities, article):
         location.save()
 
     for death in deaths:
-
         if (not death):
             continue
 
-        print("HERE")
         if (death['content'].lower() in ['a', 'the']):
             death['content'] = '1'
+
         killed = CasualtyEntity(
             seed=article,
             start_index=int(death['start_index']),
@@ -142,6 +141,7 @@ def store_label(entities, article):
     for injury in injuries:
         if (injury['content'].lower() == 'a'):
             injury['content'] = '1'
+
         injured = CasualtyEntity(
             seed=article,
             start_index=int(injury['start_index']),
@@ -173,6 +173,7 @@ def store_label(entities, article):
                 'end_index': int(perpetrator_entity['end_index']),
                 'perpetrator': perpetrator_entity['content']
             })
+
         perpetrator.save()
 
     article.save()

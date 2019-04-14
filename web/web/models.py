@@ -156,7 +156,7 @@ class CasualtyEntity(models.Model):
             victim = self.victim
         except CasualtyEntity.victim.RelatedObjectDoesNotExist:
             victim = None
-        
+
         if (victim):
             result['victim'] = self.victim.get_dict()
 
