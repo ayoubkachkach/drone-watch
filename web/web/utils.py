@@ -115,7 +115,7 @@ def store_label(entities, article):
             continue
 
         print("HERE")
-        if (death['content'].lower() == 'a'):
+        if (death['content'].lower() in ['a', 'the']):
             death['content'] = '1'
         killed = CasualtyEntity(
             seed=article,

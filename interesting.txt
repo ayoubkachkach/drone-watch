@@ -1,0 +1,4 @@
+40291: because of date of report and date of event
+40557: mentions initial death count (key leader and companions) detailed count later in article
+40578: Good example in report as almost all info are mentioned in one sentence
+40935: Good example of article that talks about deaths but not drone
