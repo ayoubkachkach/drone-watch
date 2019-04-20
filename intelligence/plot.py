@@ -6,6 +6,23 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
 from sklearn.utils.multiclass import unique_labels
 
+
+def plot_2d(x, y, title="", xlabel="", ylabel="", ylim=0):
+  y_pos = np.arange(len(x))
+  # Create bars and choose color
+  plt.bar(y_pos, y, color = (0.5,0.1,0.5,0.6))
+  # Add title and axis names
+  plt.title(title)
+  plt.xlabel(xlabel)
+  plt.ylabel(ylabel)
+  # Limits for the Y axis
+  plt.ylim(0, 1)
+  # Create names
+  plt.xticks(y_pos, x)
+   
+  plt.show()
+
+
 def plot_confusion_matrix(y_true, y_pred, classes,
                           normalize=False,
                           title=None,
@@ -23,7 +40,7 @@ def plot_confusion_matrix(y_true, y_pred, classes,
     # Compute confusion matrix
     cm = confusion_matrix(y_true, y_pred)
     # Only use the labels that appear in the data
-    classes = classes[unique_labels(y_true, y_pred)]
+    # classes = classes[unique_labels(y_true, y_pred)]
     if normalize:
         cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
         print("Normalized confusion matrix")

@@ -10,3 +10,7 @@
 40987: Title mentions it's a drone strike but not the article body
 40989: Complicated article structure (!)
 41015: Civ casualties hidden inside article (!)
+41051: Injury is mentioned further down the article
+41056: US not perpertrators ... for once!
+41061: Mention of civilian deaths comes further down the article
+41460: First death count is not about drone strike (!!)

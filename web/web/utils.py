@@ -40,12 +40,9 @@ def store_label(entities, article):
     deaths = entities.get('deaths', [])
     injuries = entities.get('injuries', [])
 
+    # Delete existing entities for article
     DateEntity.objects.filter(seed=article).delete()
     LocationEntity.objects.filter(seed=article).delete()
-
-    print("HEEERE")
-    print(CasualtyEntity._meta.get_fields())
-
     CasualtyEntity.objects.filter(seed=article).delete()
     PerpetratorEntity.objects.filter(seed=article).delete()
 
